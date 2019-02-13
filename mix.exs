@@ -6,6 +6,7 @@ defmodule Battleship.MixProject do
       app: :battleship,
       version: "0.1.0",
       elixir: "~> 1.8",
+      compilers: [:phoenix, :gettext] ++ Mix.compilers,
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -14,6 +15,7 @@ defmodule Battleship.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Battleship.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -21,8 +23,14 @@ defmodule Battleship.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:phoenix, "~> 1.4.0"},
+      {:phoenix_pubsub, "~> 1.1"},
+      {:phoenix_html, "~> 2.11"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:gettext, "~> 0.11"},
+      {:jason, "~> 1.0"},
+      {:plug_cowboy, "~> 2.0"},
+      {:distillery, "~> 2.0"},
     ]
   end
 end
