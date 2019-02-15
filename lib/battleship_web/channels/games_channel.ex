@@ -19,7 +19,7 @@ defmodule BattleshipWeb.GamesChannel do
     end
   end
 
-  # handle a player submitting their battleship placements
+  # handle a player submitting their desired username
   def handle_in("set_name", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
     game = Game.set_name(socket.assigns[:game], board, uName)
@@ -37,7 +37,7 @@ defmodule BattleshipWeb.GamesChannel do
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
   end
 
-  # handle a player submitting their battleship placements
+  # handle a player submitting their guesses
   def handle_in("fire", %{"idx" => idx, "name" => uName}, socket) do
     name = socket.assigns[:name]
     game = Game.fire(socket.assigns[:game], idx, uName)
