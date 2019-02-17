@@ -28,4 +28,6 @@ Elixir needs:
     }
 
 
-
+Changes as of 2/17/19
+    - Third player joining, block them for now?
+    - refresh -- same state

@@ -36,6 +36,18 @@ class Battleship extends React.Component {
             name: this.userName
         })
             .receive("ok", this.gotView.bind(this));
+
+
+        this.update()
+    }
+
+    update() {
+        this.channel.push("update", {
+            name: this.userName
+        })
+            .receive("ok", this.gotView.bind(this));
+
+        setTimeout(this.update.bind(this), 250);
     }
 
     initBoard() {
@@ -72,8 +84,8 @@ class Battleship extends React.Component {
         this.setState({
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
-            playerOneName: this.userName,
-            playerTwoName: this.state.playerTwoName
+            playerOneName: game.player1_name,
+            playerTwoName: game.player2_name
         });
     }
 
@@ -127,12 +139,14 @@ class Battleship extends React.Component {
         console.log(this.state);
         if (this.state.playerOneSkel.length > 0) {
             return (
-                <div id="page">
+                <div id="page" className="row">
                     <div className="column">
-                        {this.renderBoard(true)} // our board
+                        <p>{this.state.playerOneName}</p>
+                        {this.renderBoard(true)}
                     </div>
                     <div className="column">
-                        {this.renderBoard(false)} // player two's board
+                        <p>{this.state.playerTwoName}</p>
+                        {this.renderBoard(false)}
                     </div>
                 </div>);
         }
