@@ -52,7 +52,7 @@ defmodule Battleship.Game do
     # toStrip is {:player1_board | :player2_board}
     # use that to hide ships and set them as obfuscated
     Map.put(game, toStrip, Enum.each(
-      game.toStrip, fn x ->
+      toStrip, fn x ->
         if String.equivalent?("S", x) do
           "O"
         else

@@ -39,7 +39,7 @@ class Battleship extends React.Component {
     }
 
     initBoard() {
-        initBoard = [];
+        let initBoard = [];
         for (let i = 0; i < rows * cols; i++) {
             initBoard.push("O");
         }
@@ -54,22 +54,24 @@ class Battleship extends React.Component {
     }
         
     gotView(view) {
-        let player1Skel = [];
-        let player2Skel = [];
+        console.log(view.game);
+        let game = view.game;
+        let playerOneSkel = [];
+        let playerTwoSkel = [];
         for (let i = 0; i < rows * cols; i++) {
-            player1skel.push({
+            playerOneSkel.push({
                 index: i,
-                view: view.player1board[i]
+                view: game.player1_board[i]
             });
-            player2skel.push({
+            playerTwoSkel.push({
                 index: i,
-                view: view.player2board[i]
+                view: game.player2_board[i]
             });
         }
 
         this.setState({
             playerOneSkel: playerOneSkel,
-            playerTwoSkep: playerTwoSkel,
+            playerTwoSkel: playerTwoSkel,
             playerOneName: this.userName,
             playerTwoName: this.state.playerTwoName
         });
@@ -83,17 +85,17 @@ class Battleship extends React.Component {
     }
 
     renderRow(rowNum, myBoard) {
-        row = [];
+        let row = [];
         for (let i = 0; i < cols; i++) {
             if (myBoard) {
-                sq = this.state.playerOneSkel[(rowNum * cols) + i];
+                let sq = this.state.playerOneSkel[(rowNum * cols) + i];
                 row.push(
                     <div className="column" key={i}>
                         <p>{sq.view}</p>
                     </div>);
             }
             else {
-                sq = this.state.playerTwoSkel[(rowNum * cols) + i];
+                let sq = this.state.playerTwoSkel[(rowNum * cols) + i];
                 row.push(
                     <div className="column" key={i} onClick={this.onClick.bind(this, sq.index)}>
                         <p>{sq.view}</p>
@@ -104,7 +106,13 @@ class Battleship extends React.Component {
     }
 
     renderBoard(myBoard) {
-        board = [];
+        if (myBoard && this.state.playerOneSkel.length == 0) {
+            return (<p> Waiting for Player 1 </p>)
+        }
+        if (!myBoard && this.state.playerTwoSkel.length == 0) {
+            return (<p> Waiting for Player 2 </p>)
+        }
+        let board = [];
         for (let i = 0; i < rows; i++) {
             board.push(
                 <div className="row" key={i}>
@@ -116,14 +124,23 @@ class Battleship extends React.Component {
 
 
     render() {
-        return (
-            <div id="page">
-                <div className="column">
-                    {this.renderBoard(true)} // our board
-                </div>
-                <div className="column">
-                    {this.renderBoard(false)} // player two's board
-                </div>
-            </div>);
+        console.log(this.state);
+        if (this.state.playerOneSkel.length > 0) {
+            return (
+                <div id="page">
+                    <div className="column">
+                        {this.renderBoard(true)} // our board
+                    </div>
+                    <div className="column">
+                        {this.renderBoard(false)} // player two's board
+                    </div>
+                </div>);
+        }
+        else {
+            return (
+                <div>
+                    <p> Hello </p>
+                </div>);
+        }
     }
 }
