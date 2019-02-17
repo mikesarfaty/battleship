@@ -21,8 +21,9 @@ defmodule BattleshipWeb.GamesChannel do
 
   # handle a client polling for server-updates
   def handle_in("update", %{"name" => uName}, socket) do
-    # name = socket.assigns[:name]
-    update = Game.client_view(socket.assigns[:game], uName)
+    name = socket.assigns[:name]
+    current_game = BackupAgent.get(name)
+    update = current_game.client_view(socket.assigns[:game], uName)
     socket = assign(socket, :game, update)
     {:reply, {:ok, %{ "game" => update}}, socket}
   end
@@ -30,7 +31,8 @@ defmodule BattleshipWeb.GamesChannel do
   # handle a player submitting their desired username
   def handle_in("set_name", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
-    game = Game.set_name(socket.assigns[:game], uName)
+    current_game = BackupAgent.get(name)
+    game = current_game.set_name(socket.assigns[:game], uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
@@ -39,7 +41,8 @@ defmodule BattleshipWeb.GamesChannel do
   # handle a player submitting their battleship placements
   def handle_in("board_init", %{"board" => board, "name" => uName}, socket) do
     name = socket.assigns[:name]
-    game = Game.board_init(socket.assigns[:game], board, uName)
+    current_game = BackupAgent.get(name)
+    game = current_game.board_init(socket.assigns[:game], board, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
@@ -48,7 +51,8 @@ defmodule BattleshipWeb.GamesChannel do
   # handle a player submitting their guesses
   def handle_in("fire", %{"idx" => idx, "name" => uName}, socket) do
     name = socket.assigns[:name]
-    game = Game.fire(socket.assigns[:game], idx, uName)
+    current_game = BackupAgent.get(name)
+    game = current_game.fire(socket.assigns[:game], idx, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
