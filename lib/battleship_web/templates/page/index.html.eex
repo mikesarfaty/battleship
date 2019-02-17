@@ -1,5 +1,6 @@
-<div class="row">
-  <div class="column">
-    <p>🙃 index_test</p>
-  </div>
-</div>
+<%= form_for @conn, "/game", fn f -> %>
+  <p>Enter Game Name: <%= text_input f, :game_name %></p>
+  <p>Enter Username: <%= text_input f, :name %></p>
+  <p><%= submit "Enter Game" %></p>
+<% end %>
+
