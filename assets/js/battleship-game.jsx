@@ -50,16 +50,17 @@ class Battleship extends React.Component {
         setTimeout(this.update.bind(this), 250);
     }
 
+    randIdx() {
+        return Math.floor(Math.random() * Math.floor(rows * cols));
+    }
+
     initBoard() {
         let initBoard = [];
         for (let i = 0; i < rows * cols; i++) {
             initBoard.push("O");
         }
-        for (let i = 0; i < 5; i ++) {
-            initBoard[i] = "S";
-        }
-        for (let i = 4; i < 7; i++) {
-            initBoard[(cols * i) + 2] = "S";
+        for (let i = 0; i < 10; i++) {
+            initBoard[this.randIdx()] = "S";
         }
         console.log(initBoard);
         return initBoard;
