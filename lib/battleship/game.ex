@@ -58,6 +58,7 @@ defmodule Battleship.Game do
         else
           x
         end
+      end
     ))
   end
 
@@ -87,6 +88,11 @@ defmodule Battleship.Game do
     else
       Map.put(game, :player2_board, board)
       |> Map.put(:playerOneActive, true)
+    end
+  end
+
+  def checkWinner(game, _name, _player_board) do
+    game
   end
   
   def fire(game, idx, name) do
@@ -103,8 +109,8 @@ defmodule Battleship.Game do
       else
         Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
       end
-      |> Map.put(game, :playerOneActive, false)
-      |> checkWinner(game, name, game.player2_board)
+      Map.put(game, :playerOneActive, false)
+      |> checkWinner(name, game.player2_board)
     end
     if String.equivalent?(name, game.player2_name) and not game.playerOneActive do
       # take a shot at player 1's board
@@ -114,8 +120,8 @@ defmodule Battleship.Game do
       else
         Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
       end
-      |> Map.put(game, :playerOneActive, true)
-      |> checkWinner(game, name, game.player1_board)
+      Map.put(game, :playerOneActive, true)
+      |> checkWinner(name, game.player1_board)
     end
   end
 end

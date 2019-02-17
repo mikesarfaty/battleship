@@ -41,18 +41,18 @@ defmodule Battleship.GameServer do
   end
   
   def handle_call({:set_name, name, uName}, _from, game) do
-    game = Battleship.Game.set_name(game, guess)
+    game = Battleship.Game.set_name(game, uName)
     Battleship.BackupAgent.put(name, game)
     {:reply, game, game}
   end
 
-  def handle_call({:board_init, board, uName}, _from, game) do
+  def handle_call({:board_init, name, board, uName}, _from, game) do
     game = Battleship.GameServer.board_init(game, board, uName)
     Battleship.BackupAgent.put(name, game)
     {:reply, game, game}
   end
 
-  def handle_call({:fire, idx, uName}, _from, game) do
+  def handle_call({:fire, name, idx, uName}, _from, game) do
     game = Battleship.GameServer.fire(game, idx, uName)
     Battleship.BackupAgent.put(name, game)
     {:reply, game, game}
