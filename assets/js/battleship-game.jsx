@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
 
-export default function game_init(root) {
-  ReactDOM.render(<Battleship />, root);
+export default function game_init(root, channel, uName) {
+  ReactDOM.render(<Battleship channel={channel} userName={uName}/>, root);
 }
 
 const rows = 10;
