@@ -13,7 +13,7 @@ defmodule BattleshipWeb.GamesChannel do
       socket = socket
       |> assign(:game, game)
       |> assign(:name, name)
-      {:ok, %{"join" => name, "game" => Game.client_view(game)}, socket}
+      {:ok, %{"join" => name, "game" => Game.client_view(game, name)}, socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
@@ -22,7 +22,7 @@ defmodule BattleshipWeb.GamesChannel do
   # handle a player submitting their desired username
   def handle_in("set_name", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
-    game = Game.set_name(socket.assigns[:game], board, uName)
+    game = Game.set_name(socket.assigns[:game], uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
