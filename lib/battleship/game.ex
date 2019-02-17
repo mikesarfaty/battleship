@@ -41,17 +41,17 @@ defmodule Battleship.Game do
     #   the input (aka the opponent of the user calling this function)
     if String.equivalent?(game.player1_name, name) do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
-      strip(game, game.player2_board)
+      Map.put(game, game.player2_board, strip(game.player2_board))
     else
-      strip(game, game.player1_board)
+      Map.put(game, game.player1_board, strip(game.player1_board))
     end
   end
   
-  def strip(game, toStrip) do
+  def strip(toStrip) do
     # for hiding the opponents unsunk ships
     # toStrip is {:player1_board | :player2_board}
     # use that to hide ships and set them as obfuscated
-    Map.put(game, toStrip, Enum.each(
+    Enum.map(
       toStrip, fn x ->
         if String.equivalent?("S", x) do
           "O"
@@ -59,7 +59,7 @@ defmodule Battleship.Game do
           x
         end
       end
-    ))
+    )
   end
 
   ################################################################################
