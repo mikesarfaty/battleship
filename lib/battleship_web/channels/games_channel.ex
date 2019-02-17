@@ -21,7 +21,7 @@ defmodule BattleshipWeb.GamesChannel do
 
   # handle a client polling for server-updates
   def handle_in("update", %{"name" => uName}, socket) do
-    _name = socket.assigns[:name]
+    # name = socket.assigns[:name]
     update = Game.client_view(socket.assigns[:game], uName)
     socket = assign(socket, :game, update)
     {:reply, {:ok, %{ "game" => update}}, socket}
