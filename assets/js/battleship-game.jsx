@@ -97,18 +97,24 @@ class Battleship extends React.Component {
         });
     }
 
-    renderRow(rowNum, myBoard) {
+    renderRow(rowNum, isMyBoard, isPlayerOneBoard) {
         let row = [];
+        let actingBoard = [] // the board we are currently drawing
+        if (isPlayerOneBoard) {
+            actingBoard = this.state.playerOneSkel;
+        }
+        else {
+            actingBoard = this.state.playerTwoSkel;
+        }
         for (let i = 0; i < cols; i++) {
-            if (myBoard) {
-                let sq = this.state.playerOneSkel[(rowNum * cols) + i];
+            let sq = actingBoard[(rowNum * cols) + i];
+            if (isMyBoard) { // only put onClick events on other board
                 row.push(
                     <div className="column tile" key={i}>
                         <p>{sq.view}</p>
                     </div>);
             }
             else {
-                let sq = this.state.playerTwoSkel[(rowNum * cols) + i];
                 row.push(
                     <div className="column tile" key={i} onClick={this.onClick.bind(this, sq.index)}>
                         <p>{sq.view}</p>
@@ -118,18 +124,18 @@ class Battleship extends React.Component {
         return row;
     }
 
-    renderBoard(myBoard) {
-        if (myBoard && this.state.playerOneSkel.length == 0) {
+    renderBoard(isMyBoard, isPlayerOneBoard) {
+        if (isMyBoard && this.state.playerOneSkel.length == 0) {
             return (<p> Waiting for Player 1 </p>)
         }
-        if (!myBoard && this.state.playerTwoSkel.length == 0) {
+        if (!isMyBoard && this.state.playerTwoSkel.length == 0) {
             return (<p> Waiting for Player 2 </p>)
         }
         let board = [];
         for (let i = 0; i < rows; i++) {
             board.push(
                 <div className="row" key={i}>
-                  {this.renderRow(i, myBoard)}
+                  {this.renderRow(i, isMyBoard, isPlayerOneBoard)}
                 </div>);
         }
         return board;
@@ -151,11 +157,13 @@ class Battleship extends React.Component {
                 <div id="page" className="row">
                     <div className="column" id="p1">
                         <p>{playerOneName}</p>
-                        {this.renderBoard(this.userName == this.state.playerOneName)}
+                        {this.renderBoard(
+                            this.userName == this.state.playerOneName, true)}
                     </div>
                     <div className="column" id="p2">
                         <p>{playerTwoName}</p>
-                        {this.renderBoard(this.userName == this.state.playerTwoName)}
+                        {this.renderBoard(
+                            this.userName == this.state.playerTwoName, false)}
                     </div>
                 </div>);
         }
