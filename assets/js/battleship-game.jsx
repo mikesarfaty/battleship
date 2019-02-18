@@ -17,7 +17,7 @@ class Battleship extends React.Component {
         this.state = {
             playerOneSkel: [],
             playerTwoSkel: [],
-            playerOneName: "",
+            playerOneName: this.userName,
             playerTwoName: ""
         }
 
