@@ -1,3 +1,16 @@
 /* This file is for your main application css. */
 
 @import "~milligram/dist/milligram";
+
+#p1 {
+    background-color: LightGray;
+}
+
+#p2 {
+    background-color: LightBlue;
+}
+
+.tile {
+    border: 1px solid black;
+    text-align: center;
+}

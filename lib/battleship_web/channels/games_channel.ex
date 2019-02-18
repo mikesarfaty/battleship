@@ -23,7 +23,7 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("update", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    update = current_game.client_view(socket.assigns[:game], uName)
+    update = Game.client_view(current_game, uName)
     socket = assign(socket, :game, update)
     {:reply, {:ok, %{ "game" => update}}, socket}
   end
@@ -32,7 +32,7 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("set_name", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    game = current_game.set_name(socket.assigns[:game], uName)
+    game = Game.set_name(current_game, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
@@ -42,7 +42,7 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("board_init", %{"board" => board, "name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    game = current_game.board_init(socket.assigns[:game], board, uName)
+    game = Game.board_init(current_game, board, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
@@ -52,7 +52,7 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("fire", %{"idx" => idx, "name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    game = current_game.fire(socket.assigns[:game], idx, uName)
+    game = current_game.fire(current_game, idx, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}

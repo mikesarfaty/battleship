@@ -17,7 +17,7 @@ class Battleship extends React.Component {
         this.state = {
             playerOneSkel: [],
             playerTwoSkel: [],
-            playerOneName: this.userName,
+            playerOneName: "",
             playerTwoName: ""
         }
 
@@ -103,14 +103,14 @@ class Battleship extends React.Component {
             if (myBoard) {
                 let sq = this.state.playerOneSkel[(rowNum * cols) + i];
                 row.push(
-                    <div className="column" key={i}>
+                    <div className="column tile" key={i}>
                         <p>{sq.view}</p>
                     </div>);
             }
             else {
                 let sq = this.state.playerTwoSkel[(rowNum * cols) + i];
                 row.push(
-                    <div className="column" key={i} onClick={this.onClick.bind(this, sq.index)}>
+                    <div className="column tile" key={i} onClick={this.onClick.bind(this, sq.index)}>
                         <p>{sq.view}</p>
                     </div>);
             }
@@ -138,16 +138,24 @@ class Battleship extends React.Component {
 
     render() {
         console.log(this.state);
+        let playerOneName = this.state.playerOneName;
+        let playerTwoName = this.state.playerTwoName;
+        if (this.userName == playerOneName) {
+            playerOneName += " (you)"
+        }
+        else {
+            playerTwoName += " (you)"
+        }
         if (this.state.playerOneSkel.length > 0) {
             return (
                 <div id="page" className="row">
-                    <div className="column">
-                        <p>{this.state.playerOneName}</p>
-                        {this.renderBoard(true)}
+                    <div className="column" id="p1">
+                        <p>{playerOneName}</p>
+                        {this.renderBoard(this.userName == this.state.playerOneName)}
                     </div>
-                    <div className="column">
-                        <p>{this.state.playerTwoName}</p>
-                        {this.renderBoard(false)}
+                    <div className="column" id="p2">
+                        <p>{playerTwoName}</p>
+                        {this.renderBoard(this.userName == this.state.playerTwoName)}
                     </div>
                 </div>);
         }
