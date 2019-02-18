@@ -20,6 +20,10 @@ defmodule Battleship.GameServer do
     GenServer.start_link(__MODULE__, game, name: reg(name))
   end
 
+  def update(name, uName) do
+    GenServer.call(reg(name), {:update, name, uName})
+  end
+
   def set_name(name, uName) do
     GenServer.call(reg(name), {:set_name, name, uName})
   end
