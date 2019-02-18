@@ -41,9 +41,9 @@ defmodule Battleship.Game do
     #   the input (aka the opponent of the user calling this function)
     if String.equivalent?(game.player1_name, name) do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
-      Map.put(game, game.player2_board, strip(game.player2_board))
+      Map.put(game, :player2_board, strip(game.player2_board))
     else
-      Map.put(game, game.player1_board, strip(game.player1_board))
+      Map.put(game, :player1_board, strip(game.player1_board))
     end
   end
   
