@@ -202,15 +202,15 @@ class Battleship extends React.Component {
     getPlayerColor(slot) {
         if (slot == 0) {
             if (this.userName == this.state.playerOneName) {
-                return "opponent"
+                return "opponent";
             } else {
-                return "thisplayer"
+                return "thisplayer";
             }
         } else if (slot == 1) {
             if (this.userName == this.state.playerOneName) {
-                return "thisplayer"
+                return "thisplayer";
             } else {
-                return "opponent"
+                return "opponent";
             }
         }
     }

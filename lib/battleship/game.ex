@@ -100,31 +100,33 @@ defmodule Battleship.Game do
     # bad guess repalces (O)bfuscated w/ (M)iss
     p1_name = game.player1_name # can't use dict accessor w/in cond :(
     p2_name = game.player2_name
-    case {name, game.playerOneActive} do
-      {p1_name, true} ->
-        {target, _} = List.pop_at(game.player2_board, idx, 0)
-        game = Map.put(game, :playerOneActive, false)
-        if String.equivalent?(String.slice(target, 0..0), "S") do
-          game = Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "H"))
-          Map.put(game, :gameWinner, checkGameOver(game.player2_board, game.player1_name))
+    cond do
+      String.equivalent?(game.player1_name, name) ->
+        if game.playerOneActive do
+          {target, _} = List.pop_at(game.player2_board, idx, 0)
+          game = Map.put(game, :playerOneActive, false)
+          if String.equivalent?(String.slice(target, 0..0), "S") do
+            game = Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "H"))
+            Map.put(game, :gameWinner, checkGameOver(game.player2_board, game.player1_name))
+          else
+            Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
+          end
         else
-          Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
+          game
         end
-      {p1_name, false} ->
-        game
-      {p2_name, false} -> 
-        {target, _} = List.pop_at(game.player1_board, idx, 0)
-        game = Map.put(game, :playerOneActive, true)
-        if String.equivalent?(String.slice(target, 0..0), "S") do
-          game = Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "H"))
-          Map.put(game, :gameWinner, checkGameOver(game.player1_board, game.player2_name))
+      String.equivalent?(game.player2_name, name) -> 
+        if not game.playerOneActive do
+          {target, _} = List.pop_at(game.player1_board, idx, 0)
+          game = Map.put(game, :playerOneActive, true)
+          if String.equivalent?(String.slice(target, 0..0), "S") do
+            game = Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "H"))
+            Map.put(game, :gameWinner, checkGameOver(game.player1_board, game.player2_name))
+          else
+            Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
+          end
         else
-          Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
+          game
         end
-      {p2_name, true} ->
-        game
-      true -> # default case not working? need to reject non active user somehow
-        game
     end
   end
 end
