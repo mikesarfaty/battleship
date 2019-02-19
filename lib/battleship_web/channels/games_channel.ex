@@ -52,7 +52,7 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("fire", %{"idx" => idx, "name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    game = current_game.fire(current_game, idx, uName)
+    game = Game.fire(current_game, idx, uName)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}

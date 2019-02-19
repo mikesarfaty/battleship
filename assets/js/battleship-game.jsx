@@ -15,9 +15,9 @@ class Battleship extends React.Component {
         this.channel = props.channel;
         this.userName = props.userName;
         this.state = {
-            playerOneSkel: [],
-            playerTwoSkel: [],
-            playerOneName: this.userName,
+            playerOneSkel: this.emptySkel(),
+            playerTwoSkel: this.emptySkel(),
+            playerOneName: "",
             playerTwoName: ""
         }
 
@@ -54,6 +54,18 @@ class Battleship extends React.Component {
         return Math.floor(Math.random() * Math.floor(rows * cols));
     }
 
+    emptySkel() {
+        let board = [];
+        for (let i = 0; i < rows * cols; i++) {
+            board.push({
+                index: i,
+                isHovered: false,
+                view: "O"
+            });
+        }
+        return board;
+    }
+
     initBoard() {
         let initBoard = [];
         for (let i = 0; i < rows * cols; i++) {
@@ -74,14 +86,22 @@ class Battleship extends React.Component {
         for (let i = 0; i < rows * cols; i++) {
             playerOneSkel.push({
                 index: i,
-                view: game.player1_board[i]
+                view: game.player1_board[i],
+                hover: this.state.playerOneSkel[i].isHovered
             });
             playerTwoSkel.push({
                 index: i,
-                view: game.player2_board[i]
+                view: game.player2_board[i],
+                hover: this.state.playerTwoSkel[i].isHovered
             });
         }
 
+        if (game.player1_board.length == 0) {
+            playerOneSkel = this.state.playerOneSkel;
+        }
+        if (game.player2_board.length == 0) {
+            playerTwoSkel = this.state.playerTwoSkel;
+        }
         this.setState({
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
@@ -97,6 +117,55 @@ class Battleship extends React.Component {
         });
     }
 
+    getOtherBoard() {
+        if (this.userName == this.state.playerOneName) {
+            return this.state.playerTwoSkel;
+        }
+        else {
+            return this.state.playerOneSkel;
+        }
+    }
+
+    isPlayerOne() {
+        return this.userName == this.playerOneName;
+    }
+
+    onMouseEvent(clickedIndex, isMouseEnter, _ev) {
+        let newState = this.state;
+        let newOtherBoard = this.getOtherBoard();
+        if (isMouseEnter) {
+            newOtherBoard[clickedIndex].isHovered = true; 
+        }
+        else {
+            newOtherBoard[clickedIndex].isHovered = false;
+        }
+        console.log("new state is", newState);
+        this.setState(newState);
+    }
+
+    renderSquare(i, isMyBoard, sq) {
+        let classNames = "column tile";
+        if (sq.isHovered) {
+            classNames += " hover"
+        }
+        if (isMyBoard) { // only put onClick events on other board
+            return(
+                <div className={classNames} key={i}>
+                    <p>{sq.view}</p>
+                </div>);
+        }
+        else {
+            return(
+                <div className={classNames}
+                     key={i}
+                     onClick={this.onClick.bind(this, sq.index)}
+                     onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
+                     onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
+                    <p>{sq.view}</p>
+                </div>);
+        }
+    }
+
     renderRow(rowNum, isMyBoard, isPlayerOneBoard) {
         let row = [];
         let actingBoard = [] // the board we are currently drawing
@@ -108,18 +177,7 @@ class Battleship extends React.Component {
         }
         for (let i = 0; i < cols; i++) {
             let sq = actingBoard[(rowNum * cols) + i];
-            if (isMyBoard) { // only put onClick events on other board
-                row.push(
-                    <div className="column tile" key={i}>
-                        <p>{sq.view}</p>
-                    </div>);
-            }
-            else {
-                row.push(
-                    <div className="column tile" key={i} onClick={this.onClick.bind(this, sq.index)}>
-                        <p>{sq.view}</p>
-                    </div>);
-            }
+            row.push(this.renderSquare(i, isMyBoard, sq));
         }
         return row;
     }
