@@ -22,13 +22,13 @@ defmodule Battleship.Game do
   # GAME LOGIC
   ################################################################################
 
-  def checkGameOver(game, potentialWinner, losersBoard) do
+  def checkGameOver(losersBoard, potentialWinner) do
     # if (potential) losersBoard contains no (S)hip elements, they lost
     #   so potentialWinner has won at this point
-    if Enum.member?(losersBoard, "S") do
-      Map.put(game, :gameWinner, potentialWinner)
+    if not Enum.member?(losersBoard, "S") do
+      potentialWinner
     else
-      game
+      nil
     end
   end
   
@@ -91,9 +91,6 @@ defmodule Battleship.Game do
     end
   end
 
-  def checkWinner(game, _name, _player_board) do
-    game
-  end
   
   def fire(game, idx, name) do
     # ?TODO: currently if the non-active user guesses, there's no route
@@ -101,27 +98,29 @@ defmodule Battleship.Game do
     # using a users name and guess coordinate, if it is their turn, apply a guess
     # correct guess replaces (S)hip w/ (H)it
     # bad guess repalces (O)bfuscated w/ (M)iss
-    if String.equivalent?(name, game.player1_name) and game.playerOneActive do
-      # take a shot at player 2's board
-      {target, _} = List.pop_at(game.player2_board, idx, 0)
-      if String.equivalent?(target, "S") do
-        Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "H"))
-      else
-        Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
-      end
-      Map.put(game, :playerOneActive, false)
-      |> checkWinner(name, game.player2_board)
-    end
-    if String.equivalent?(name, game.player2_name) and not game.playerOneActive do
-      # take a shot at player 1's board
-      {target, _} = List.pop_at(game.player1_board, idx, 0)
-      if String.equivalent?(target, "S") do
-        Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "H"))
-      else
-        Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
-      end
-      Map.put(game, :playerOneActive, true)
-      |> checkWinner(name, game.player1_board)
+    p1_name = game.player1_name # can't use dict accessor w/in cond :(
+    p2_name = game.player2_name
+    case {name, game.playerOneActive} do
+      {p1_name, true} ->
+        {target, _} = List.pop_at(game.player2_board, idx, 0)
+        game = Map.put(game, :playerOneActive, false)
+        if String.equivalent?(target, "S") do
+          game = Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "H"))
+          Map.put(game, :gameWinner, checkGameOver(game.player2_board, game.player1_name))
+        else
+          Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
+        end
+      {p2_name, false} -> 
+        {target, _} = List.pop_at(game.player1_board, idx, 0)
+        game = Map.put(game, :playerOneActive, true)
+        if String.equivalent?(target, "S") do
+          game = Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "H"))
+          Map.put(game, :gameWinner, checkGameOver(game.player1_board, game.player2_name))
+        else
+          Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
+        end
+        true -> # default case not working? need to reject non active user somehow
+          game
     end
   end
 end
