@@ -199,6 +199,22 @@ class Battleship extends React.Component {
         return board;
     }
 
+    getPlayerColor(slot) {
+        if (slot == 0) {
+            if (this.userName == this.state.playerOneName) {
+                return "opponent"
+            } else {
+                return "thisplayer"
+            }
+        } else if (slot == 1) {
+            if (this.userName == this.state.playerOneName) {
+                return "thisplayer"
+            } else {
+                return "opponent"
+            }
+        }
+    }
+
 
     render() {
         console.log(this.state);
@@ -213,12 +229,12 @@ class Battleship extends React.Component {
         if (this.state.playerOneSkel.length > 0) {
             return (
                 <div id="page" className="row">
-                    <div className="column" id="p1">
+                    <div className="column" id={this.getPlayerColor(0)}>
                         <p>{playerOneName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerOneName, true)}
                     </div>
-                    <div className="column" id="p2">
+                    <div className="column" id={this.getPlayerColor(1)}>
                         <p>{playerTwoName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerTwoName, false)}

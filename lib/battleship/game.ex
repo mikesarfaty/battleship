@@ -13,7 +13,7 @@ defmodule Battleship.Game do
       player2_board: [],
       player1_name: "",
       player2_name: "",
-      playerOneActive: false,
+      playerOneActive: nil,
       gameWinner: nil
     }
   end
@@ -53,7 +53,7 @@ defmodule Battleship.Game do
     # use that to hide ships and set them as obfuscated
     Enum.map(
       toStrip, fn x ->
-        if String.equivalent?("S", x) do
+        if String.equivalent?("S", String.slice(x, 0..0)) do
           "O"
         else
           x
@@ -104,23 +104,27 @@ defmodule Battleship.Game do
       {p1_name, true} ->
         {target, _} = List.pop_at(game.player2_board, idx, 0)
         game = Map.put(game, :playerOneActive, false)
-        if String.equivalent?(target, "S") do
+        if String.equivalent?(String.slice(target, 0..0), "S") do
           game = Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "H"))
           Map.put(game, :gameWinner, checkGameOver(game.player2_board, game.player1_name))
         else
           Map.put(game, :player2_board, List.replace_at(game.player2_board, idx, "M"))
         end
+      {p1_name, false} ->
+        game
       {p2_name, false} -> 
         {target, _} = List.pop_at(game.player1_board, idx, 0)
         game = Map.put(game, :playerOneActive, true)
-        if String.equivalent?(target, "S") do
+        if String.equivalent?(String.slice(target, 0..0), "S") do
           game = Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "H"))
           Map.put(game, :gameWinner, checkGameOver(game.player1_board, game.player2_name))
         else
           Map.put(game, :player1_board, List.replace_at(game.player1_board, idx, "M"))
         end
-        true -> # default case not working? need to reject non active user somehow
-          game
+      {p2_name, true} ->
+        game
+      true -> # default case not working? need to reject non active user somehow
+        game
     end
   end
 end
