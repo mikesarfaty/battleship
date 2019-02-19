@@ -87,12 +87,12 @@ class Battleship extends React.Component {
             playerOneSkel.push({
                 index: i,
                 view: game.player1_board[i],
-                hover: this.state.playerOneSkel[i].isHovered
+                isHovered: this.state.playerOneSkel[i].isHovered
             });
             playerTwoSkel.push({
                 index: i,
                 view: game.player2_board[i],
-                hover: this.state.playerTwoSkel[i].isHovered
+                isHovered: this.state.playerTwoSkel[i].isHovered
             });
         }
 
@@ -145,6 +145,7 @@ class Battleship extends React.Component {
 
     renderSquare(i, isMyBoard, sq) {
         let classNames = "column tile";
+        classNames += " " + sq.view;
         if (sq.isHovered) {
             classNames += " hover"
         }
