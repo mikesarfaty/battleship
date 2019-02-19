@@ -93,13 +93,9 @@ defmodule Battleship.Game do
 
   
   def fire(game, idx, name) do
-    # ?TODO: currently if the non-active user guesses, there's no route
-    #   might need to be addressed?
     # using a users name and guess coordinate, if it is their turn, apply a guess
     # correct guess replaces (S)hip w/ (H)it
     # bad guess repalces (O)bfuscated w/ (M)iss
-    p1_name = game.player1_name # can't use dict accessor w/in cond :(
-    p2_name = game.player2_name
     cond do
       String.equivalent?(game.player1_name, name) ->
         if game.playerOneActive do
