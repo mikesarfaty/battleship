@@ -96,6 +96,7 @@ defmodule Battleship.Game do
   end
   
   def fire(game, idx, name) do
+    IO.inspect game
     # ?TODO: currently if the non-active user guesses, there's no route
     #   might need to be addressed?
     # using a users name and guess coordinate, if it is their turn, apply a guess
@@ -123,5 +124,7 @@ defmodule Battleship.Game do
       Map.put(game, :playerOneActive, true)
       |> checkWinner(name, game.player1_board)
     end
+    game   
   end
+
 end
