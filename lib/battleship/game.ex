@@ -50,6 +50,7 @@ defmodule Battleship.Game do
   end
 
   def validate_board(board) do
+    ## TODO: need to make sure we don't allow wrapping around a line for horizontal
     # iteratate thru board (single-depth list, len 100)
     # once we encounter an S#, check if it continues to the right
     # if it does for # elements, it's a valid ship
