@@ -233,10 +233,10 @@ class Battleship extends React.Component {
         let playerOneName = this.state.playerOneName;
         let playerTwoName = this.state.playerTwoName;
         if (this.userName == playerOneName) {
-            playerOneName += " (you)"
+            playerOneName += " (you)";
         }
-        else {
-            playerTwoName += " (you)"
+        else if (this.userName == playerTwoName) {
+            playerTwoName += " (you)";
         }
         if (this.state.playerOneSkel.length > 0) {
             return (

@@ -37,3 +37,7 @@ since otherwise the player can't tell when their guesses will actually be regist
 
 Writeup Link for editing:
 https://docs.google.com/document/d/15mwTUXZeLtApc923QxpxbT1_uEYVoObQ_SbU7QVxdjU/edit?usp=sharing
+
+TODO: maybe fix css backgrounds for spectator
+TODO: nbsp on non-join player 2
+TODO: disable click/hovers for spectator? is necessary even?
