@@ -32,12 +32,12 @@ Changes as of 2/17/19
     - Third player joining, block them for now?
     - refresh -- same state
 
-TODO: we should have a way of signalling when both players have submitted their board,
-since otherwise the player can't tell when their guesses will actually be registered
 
 Writeup Link for editing:
 https://docs.google.com/document/d/15mwTUXZeLtApc923QxpxbT1_uEYVoObQ_SbU7QVxdjU/edit?usp=sharing
 
-TODO: maybe fix css backgrounds for spectator
-TODO: nbsp on non-join player 2
-TODO: disable click/hovers for spectator? is necessary even?
+TODO: we should have a way of signalling when both players have submitted their board,
+since otherwise the player can't tell when their guesses will actually be registered
+TODO: maybe fix css backgrounds for spectator?
+TODO: maybe hide p2 board until they join?
+TODO: disable click/hovers for spectator? is necessary even? probs not

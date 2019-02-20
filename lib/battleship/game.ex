@@ -48,7 +48,6 @@ defmodule Battleship.Game do
   end
 
   def validate_board(board) do
-    ## TODO: need to make sure we don't allow wrapping around a line for horizontal
     # iteratate thru board (single-depth list, len 100)
     # once we encounter an S#, check if it continues to the right
     # if it does for # elements, it's a valid ship
@@ -66,15 +65,21 @@ defmodule Battleship.Game do
     {currentCell, _} = List.pop_at(board, startIndex + offset)
     if String.equivalent?(currentCell, shipType) do
       # if the current directional seek generates a positive result
-      if String.to_integer(String.slice(shipType, 1..1)) == (offset + increment) do
-        # if we've finished counting all cells of a ship
-        true
+      if (increment == 1 and (div(startIndex, 10) != div((startIndex + offset), 10))) do
+        # make sure that a ship doesn't extend beyond a row into the next row, since
+        #   our client can theoretically submit boards that do this
+        false
       else
-        if increment == 10 and String.to_integer(String.slice(shipType, 1..1)) == div((offset + increment), 10) do
+        if String.to_integer(String.slice(shipType, 1..1)) == (offset + increment) do
+          # if we've finished counting all cells of a ship
           true
         else
-          # if we haven't discovered the end of the ship, continue recursion
-          validate_ship(board, shipType, startIndex, increment, offset + increment)
+          if increment == 10 and String.to_integer(String.slice(shipType, 1..1)) == div((offset + increment), 10) do
+            true
+          else
+            # if we haven't discovered the end of the ship, continue recursion
+            validate_ship(board, shipType, startIndex, increment, offset + increment)
+          end
         end
       end
     else
