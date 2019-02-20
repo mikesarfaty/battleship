@@ -14,7 +14,7 @@ config :battleship, BattleshipWeb.Endpoint,
   root: ".",
   version: Application.spec(:phoenix_distillery, :vsn),
   http: [:inet6, port: {:system, "PORT"}],
-  url: [host: "battleship.zombo.club", port: 80], # TODO: CHANGE ME FOR DOMAIN
+  url: [host: "battleship.zombo.club", port: 80], # TODO: change hostname according to host server
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production

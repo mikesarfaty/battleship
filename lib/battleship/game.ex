@@ -4,8 +4,6 @@ defmodule Battleship.Game do
   # CONSTRUCTION
   ################################################################################
 
-  # ?TODO: might need a board parser for receiving from clients?
-
   def new do
     # init everything empty
     %{
