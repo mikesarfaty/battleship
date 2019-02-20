@@ -31,3 +31,9 @@ Elixir needs:
 Changes as of 2/17/19
     - Third player joining, block them for now?
     - refresh -- same state
+
+TODO: we should have a way of signalling when both players have submitted their board,
+since otherwise the player can't tell when their guesses will actually be registered
+
+Writeup Link for editing:
+https://docs.google.com/document/d/15mwTUXZeLtApc923QxpxbT1_uEYVoObQ_SbU7QVxdjU/edit?usp=sharing

@@ -4,8 +4,6 @@ defmodule Battleship.Game do
   # CONSTRUCTION
   ################################################################################
 
-  # ?TODO: might need a board parser for receiving from clients?
-
   def new do
     # init everything empty
     %{
@@ -102,7 +100,13 @@ defmodule Battleship.Game do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
       Map.put(game, :player2_board, strip(game.player2_board))
     else
-      Map.put(game, :player1_board, strip(game.player1_board))
+      if String.equivalent?(game.player2_name, name) do
+        Map.put(game, :player1_board, strip(game.player1_board))
+      else
+        # generate spectator view
+        Map.put(Map.put(game, :player2_board, strip(game.player2_board)),
+                :player1_board, strip(game.player1_board))
+      end
     end
   end
   
