@@ -22,6 +22,20 @@ defmodule Battleship.Game do
   # GAME LOGIC
   ################################################################################
 
+  def is_game_full(game, newName) do
+    # if theres an open slot, allow a join
+    # if the new user join already has their name in the game, let them re-join
+    if String.equivalent?(game.player1_name, "") or String.equivalent?(game.player2_name, "") do
+      false
+    else
+      if String.equivalent?(game.player1_name, newName) or String.equivalent?(game.player2_name, newName) do
+        false
+      else
+        true
+      end
+    end
+  end
+
   def check_game_over(losersBoard, potentialWinner) do
     # if (potential) losersBoard contains no (S)hip elements, they lost
     #   so potentialWinner has won at this point
@@ -118,9 +132,13 @@ defmodule Battleship.Game do
     else
       if String.equivalent?(Map.get(game, :player1_name), name) do
         # handle duplicate names
-        Map.put(game, :player2_name, name <> "_")
+        game
       else
-        Map.put(game, :player2_name, name)
+        if String.equivalent?(game.player2_name, "") do
+          Map.put(game, :player2_name, name)
+        else
+          game
+        end
       end
     end
   end

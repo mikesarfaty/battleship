@@ -32,19 +32,19 @@ defmodule BattleshipWeb.GamesChannel do
   def handle_in("set_name", %{"name" => uName}, socket) do
     name = socket.assigns[:name]
     current_game = BackupAgent.get(name)
-    game = Game.set_name(current_game, uName)
-    socket = assign(socket, :game, game)
-    BackupAgent.put(name, game)
-    {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
+    if Game.is_game_full(current_game, uName) do
+      {:reply, {:error, %{"reason" => "Lobby full"}}, socket}
+    else
+      game = Game.set_name(current_game, uName)
+      socket = assign(socket, :game, game)
+      BackupAgent.put(name, game)
+      {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
+    end
   end
 
   # handle a player submitting their battleship placements
   def handle_in("board_init", %{"board" => board, "name" => uName}, socket) do
     if Game.validate_board(board) do
-      IO.write("good board")
-      IO.write("good board")
-      IO.write("good board")
-      IO.write("good board")
       name = socket.assigns[:name]
       current_game = BackupAgent.get(name)
       game = Game.board_init(current_game, board, uName)
@@ -52,10 +52,6 @@ defmodule BattleshipWeb.GamesChannel do
       BackupAgent.put(name, game)
       {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
     else
-      IO.write("bad board")
-      IO.write("bad board")
-      IO.write("bad board")
-      IO.write("bad board")
       {:reply, {:error, %{"reason" => "FILTHY CHEATER"}}, socket}
     end
   end
