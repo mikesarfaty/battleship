@@ -13,7 +13,7 @@ config :battleship, Battleship.Endpoint,
   server: true,
   root: ".",
   version: Application.spec(:phoenix_distillery, :vsn),
-  http: [:inet6, port: {:system, "PORT"}],
+  http: [:inet6, port: {:system, 4793}],
   url: [host: "battleship.zombo.club", port: 80], # TODO: CHANGE ME FOR DOMAIN
   cache_static_manifest: "priv/static/cache_manifest.json"
 
