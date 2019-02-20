@@ -15,30 +15,96 @@ class Battleship extends React.Component {
         this.channel = props.channel;
         this.userName = props.userName;
         this.state = {
-            playerOneSkel: this.emptySkel(),
-            playerTwoSkel: this.emptySkel(),
+            playerOneSkel: [],
+            playerTwoSkel: [],
             playerOneName: "",
-            playerTwoName: ""
-        }
+            playerTwoName: []
+        };
+        this.dragging = ""; // If we're placing ships, which one are we placing?
+        // ex: 5 means a 5 length ship
+        this.gameStart = false;
 
         this.channel
             .join()
-            .receive("ok", this.gotView.bind(this))
-            .receive("error", resp => { console.log("Unable to join", resp); });
+            .receive("ok", this.gotJoinView.bind(this))
 
         this.channel.push("set_name", {
             name: this.userName
         })
-            .receive("ok", this.gotView.bind(this));
+            .receive("ok", this.gotNameView.bind(this));
 
+        setTimeout(this.initBoardThenUpdate.bind(this), 100);
+        /*
         this.channel.push("board_init", {
             board: this.initBoard(),
             name: this.userName
         })
             .receive("ok", this.gotView.bind(this));
+        */
+    }
 
+    /*
+     * We have just joined the game, so we get an initial empty view
+     */
+    gotJoinView(view) {
+        let game = view.game;
+        let playerOneSkel = [];
+        let playerTwoSkel = [];
 
-        this.update()
+        if (game.player1_board.length == 0) {
+            for (let i = 0; i < rows * cols; i++) {
+                playerOneSkel.push({
+                    index: i,
+                    view: "O",
+                    ishovered: false
+                });
+            }
+        }
+        else {
+            playerOneSkel = game.player1_board;
+        }
+
+        if (game.player2_board.length == 0) {
+            for (let i = 0; i < rows * cols; i++) {
+                playerTwoSkel.push({
+                    index: i,
+                    view: "O",
+                    ishovered: false
+                });
+            }
+        }
+        else {
+            player2_board = game.player2_board;
+        }
+
+        this.setState({
+            playerOneSkel: playerOneSkel,
+            playerTwoSkel: playerTwoSkel,
+            playerOneName: game.player1_name,
+            playerTwoName: game.player2_name
+        });
+    }
+
+    /*
+     * We set our name and got he view back
+     */
+    gotNameView(view) {
+        let game = view.game;
+        let newState = this.state;
+        newState.playerOneName = game.player1_name;
+        newState.playerTwoName = game.player2_name;
+        this.setState(newState)
+    }
+
+    /*
+     * We are ready to start moving pieces around
+     */
+    initBoardThenUpdate() {
+        let newState = this.state;
+        newState.playerOneSkel = this.emptySkel(true);
+        newState.playerTwoSkel = this.emptySkel(false);
+        this.setState(newState);
+        this.update(); // poll for updates from server
     }
 
     update() {
@@ -54,7 +120,28 @@ class Battleship extends React.Component {
         return Math.floor(Math.random() * Math.floor(rows * cols));
     }
 
-    emptySkel() {
+    placeShip(board, shipView) {
+        let length = 0;
+        let start = 0;
+        let view = shipView;
+        if (shipView == "S5") {
+            start = 0;
+            length = 5;
+        }
+        else if (shipView == "S4") {
+            start = (cols * 2);
+            length = 4;
+        }
+        else {
+            start = (cols * 4);
+            length = 3;
+        }
+        for (let i = start; i < start + length; i++) {
+            board[i].view = shipView;
+        }
+    }
+
+    emptySkel(forPlayerOne) {
         let board = [];
         for (let i = 0; i < rows * cols; i++) {
             board.push({
@@ -62,6 +149,16 @@ class Battleship extends React.Component {
                 isHovered: false,
                 view: "O"
             });
+        }
+        if (forPlayerOne && this.isPlayerOne()) {
+            this.placeShip(board, "S5");
+            this.placeShip(board, "S4");
+            this.placeShip(board, "S3");
+        }
+        else if (!forPlayerOne && !this.isPlayerOne()) {
+            this.placeShip(board, "S5");
+            this.placeShip(board, "S4");
+            this.placeShip(board, "S3");
         }
         return board;
     }
@@ -74,12 +171,10 @@ class Battleship extends React.Component {
         for (let i = 0; i < 10; i++) {
             initBoard[this.randIdx()] = "S";
         }
-        console.log(initBoard);
         return initBoard;
     }
-        
+
     gotView(view) {
-        console.log(view.game);
         let game = view.game;
         let playerOneSkel = [];
         let playerTwoSkel = [];
@@ -111,6 +206,9 @@ class Battleship extends React.Component {
     }
 
     onClick(clickedIndex, _ev) {
+        if (!this.gameStart) {
+            return;
+        }
         this.channel.push("fire", {
             idx: clickedIndex,
             name: this.userName
@@ -126,8 +224,17 @@ class Battleship extends React.Component {
         }
     }
 
+    getMyBoard() {
+        if (this.isPlayerOne()) {
+            return this.state.playerOneSkel;
+        }
+        else {
+            return this.state.playerTwoSkel;
+        }
+    }
+
     isPlayerOne() {
-        return this.userName == this.playerOneName;
+        return this.userName == this.state.playerOneName;
     }
 
     onMouseEvent(clickedIndex, isMouseEnter, _ev) {
@@ -139,8 +246,55 @@ class Battleship extends React.Component {
         else {
             newOtherBoard[clickedIndex].isHovered = false;
         }
-        console.log("new state is", newState);
         this.setState(newState);
+    }
+
+    onDragStart(draggedSquare, _ev) {
+        if (["S3", "S4", "S5"].includes(draggedSquare.view)) {
+            this.dragging = draggedSquare.view;
+            let board = this.getMyBoard();
+            this.setState(this.state);
+        }
+    }
+
+    /*
+     * removes all squares with the given view from the given board
+     */
+    removeAll(view, board) {
+        for (let i = 0; i < rows * cols; i++) {
+            if (board[i].view == view) {
+                board[i].view = "O";
+            }
+        }
+    }
+
+    getShipLength(view) {
+        if (view == "S3") {
+            return 3
+        }
+        else if (view == "S4") {
+            return 4
+        }
+        else if (view == "S5") {
+            return 5
+        }
+    }
+
+    myOnDragOver(sq, _ev) {
+        if (this.dragging != "") {
+            let board = this.getMyBoard();
+            let shipLength = this.getShipLength(this.dragging);
+            this.removeAll(this.dragging, board);
+            for (let i = sq.index; i < sq.index + shipLength; i++) {
+                if (board[i].view == "O") {
+                    board[i].view = this.dragging;
+                }
+            }
+            this.setState(this.state);
+        }
+        else {
+            return;
+        }
     }
 
     renderSquare(i, isMyBoard, sq) {
@@ -151,8 +305,9 @@ class Battleship extends React.Component {
         }
         if (isMyBoard) { // only put onClick events on other board
             return(
-                <div className={classNames} key={i}>
-                    <p>{sq.view}</p>
+                <div className={classNames} key={i}
+                     onDragStart={this.onDragStart.bind(this, sq)}
+                     onDragOver={this.myOnDragOver.bind(this, sq)}>
                 </div>);
         }
         else {
@@ -162,7 +317,6 @@ class Battleship extends React.Component {
                      onClick={this.onClick.bind(this, sq.index)}
                      onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
                      onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
-                    <p>{sq.view}</p>
                 </div>);
         }
     }
@@ -202,7 +356,6 @@ class Battleship extends React.Component {
 
 
     render() {
-        console.log(this.state);
         let playerOneName = this.state.playerOneName;
         let playerTwoName = this.state.playerTwoName;
         if (this.userName == playerOneName) {

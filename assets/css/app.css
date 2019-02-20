@@ -13,13 +13,23 @@
 .tile {
     border: 1px solid black;
     text-align: center;
+    height: 50px;
+    width: 50px;
 }
 
 .hover {
     background-color: Red;
 }
 
-.S {
+.S5 {
+   background-color: Blue;
+}
+
+.S4 {
+   background-color: Blue;
+}
+
+.S3 {
    background-color: Blue;
 }
 
