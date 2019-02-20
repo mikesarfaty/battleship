@@ -83,7 +83,7 @@ class Battleship extends React.Component {
             initBoard[s4Start + i] = "S4";
         }
         let s5Start = 50;
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             initBoard[s5Start + (10 * i)] = "S5";
         }
         console.log(initBoard);
