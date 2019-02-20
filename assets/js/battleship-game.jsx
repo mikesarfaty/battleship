@@ -168,8 +168,20 @@ class Battleship extends React.Component {
         for (let i = 0; i < rows * cols; i++) {
             initBoard.push("O");
         }
-        for (let i = 0; i < 10; i++) {
-            initBoard[this.randIdx()] = "S";
+        // for (let i = 0; i < 10; i++) {
+        //     initBoard[this.randIdx()] = "S";
+        // } // replaced w/ different temporary fixed init for server-side board validation tests
+        let s3Start = 12;
+        for (let i = 0; i < 3; i++) {
+            initBoard[s3Start + i] = "S3";
+        }
+        let s4Start = 0;
+        for (let i = 0; i < 4; i++) {
+            initBoard[s4Start + i] = "S4";
+        }
+        let s5Start = 50;
+        for (let i = 0; i < 5; i++) {
+            initBoard[s5Start + (10 * i)] = "S5";
         }
         return initBoard;
     }
@@ -354,6 +366,22 @@ class Battleship extends React.Component {
         return board;
     }
 
+    getPlayerColor(slot) {
+        if (slot == 0) {
+            if (this.userName == this.state.playerOneName) {
+                return "opponent";
+            } else {
+                return "thisplayer";
+            }
+        } else if (slot == 1) {
+            if (this.userName == this.state.playerOneName) {
+                return "thisplayer";
+            } else {
+                return "opponent";
+            }
+        }
+    }
+
 
     render() {
         let playerOneName = this.state.playerOneName;
@@ -367,12 +395,12 @@ class Battleship extends React.Component {
         if (this.state.playerOneSkel.length > 0) {
             return (
                 <div id="page" className="row">
-                    <div className="column" id="p1">
+                    <div className="column" id={this.getPlayerColor(0)}>
                         <p>{playerOneName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerOneName, true)}
                     </div>
-                    <div className="column" id="p2">
+                    <div className="column" id={this.getPlayerColor(1)}>
                         <p>{playerTwoName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerTwoName, false)}

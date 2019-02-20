@@ -2,11 +2,11 @@
 
 @import "~milligram/dist/milligram";
 
-#p1 {
+#thisplayer {
     background-color: LightGray;
 }
 
-#p2 {
+#opponent {
     background-color: LightBlue;
 }
 
