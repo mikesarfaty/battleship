@@ -71,8 +71,20 @@ class Battleship extends React.Component {
         for (let i = 0; i < rows * cols; i++) {
             initBoard.push("O");
         }
-        for (let i = 0; i < 10; i++) {
-            initBoard[this.randIdx()] = "S";
+        // for (let i = 0; i < 10; i++) {
+        //     initBoard[this.randIdx()] = "S";
+        // } // replaced w/ different temporary fixed init for server-side board validation tests
+        let s3Start = 12;
+        for (let i = 0; i < 3; i++) {
+            initBoard[s3Start + i] = "S3";
+        }
+        let s4Start = 0;
+        for (let i = 0; i < 4; i++) {
+            initBoard[s4Start + i] = "S4";
+        }
+        let s5Start = 50;
+        for (let i = 0; i < 4; i++) {
+            initBoard[s5Start + (10 * i)] = "S5";
         }
         console.log(initBoard);
         return initBoard;

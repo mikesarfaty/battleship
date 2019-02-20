@@ -40,12 +40,16 @@ defmodule BattleshipWeb.GamesChannel do
 
   # handle a player submitting their battleship placements
   def handle_in("board_init", %{"board" => board, "name" => uName}, socket) do
-    name = socket.assigns[:name]
-    current_game = BackupAgent.get(name)
-    game = Game.board_init(current_game, board, uName)
-    socket = assign(socket, :game, game)
-    BackupAgent.put(name, game)
-    {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
+    if Game.validate_board(board) do
+      name = socket.assigns[:name]
+      current_game = BackupAgent.get(name)
+      game = Game.board_init(current_game, board, uName)
+      socket = assign(socket, :game, game)
+      BackupAgent.put(name, game)
+      {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
+    else
+      {:reply, {:error, %{"reason" => "FILTHY CHEATER"}}, socket}
+    end
   end
 
   # handle a player submitting their guesses
