@@ -14,7 +14,7 @@ config :memory2, MemoryWeb.Endpoint,
   root: ".",
   version: Application.spec(:phoenix_distillery, :vsn),
   http: [:inet6, port: {:system, "PORT"}],
-  url: [host: "memory2.zombo.club", port: 80],
+  url: [host: "battleship.zombo.club", port: 80], # TODO: CHANGE ME FOR DOMAIN
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
@@ -85,5 +85,5 @@ get_secret = fn name ->
   String.trim(File.read!(path))
 end
 
-config :foo, HangmanWeb.Endpoint,
+config :foo, BattleshipWeb.Endpoint,
   secret_key_base: get_secret.("key_base")
