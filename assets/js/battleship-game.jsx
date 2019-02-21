@@ -106,6 +106,7 @@ class Battleship extends React.Component {
      * server, keep the dummy boards.
      */
     gotView(view) {
+        console.log("server view", view.game);
         let game = view.game;
         let playerOneSkel = [];
         let playerTwoSkel = [];
@@ -132,7 +133,8 @@ class Battleship extends React.Component {
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
             playerOneName: game.player1_name,
-            playerTwoName: game.player2_name
+            playerTwoName: game.player2_name,
+            gameWinner: game.gameWinner
         });
     }
 
@@ -181,7 +183,8 @@ class Battleship extends React.Component {
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
             playerOneName: playerOneName,
-            playerTwoName: playerTwoName
+            playerTwoName: playerTwoName,
+            gameWinner: game.gameWinner
         });
     }
 
@@ -455,32 +458,57 @@ class Battleship extends React.Component {
         if (this.userName == playerOneName) {
             playerOneName += " (you)"
         }
-        else {
+        else if (this.userName == playerTwoName) {
             playerTwoName += " (you)"
         }
         if (this.state.playerOneSkel.length > 0) {
             return (
-                <div id="page" className="row">
-                    <div className="column" id={this.getPlayerColor(0)}>
+                <div id="page">
+                    <div id="status" className="row">
+                        <p id="gamewinner">
+                            {this.renderGameWinner()}
+                        </p>
+                    </div>
+                    <div id="boards" className="row">
+                        <div className="column" id={this.getPlayerColor(0)}>
                         <p>{playerOneName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerOneName, true)}
-                    </div>
-                    <div className="column" id={this.getPlayerColor(1)}>
+                        </div>
+                        <div className="column" id={this.getPlayerColor(1)}>
                         <p>{playerTwoName}</p>
                         {this.renderBoard(
                             this.userName == this.state.playerTwoName, false)}
-                    </div>
-                    <div className="column" id="sidebar">
+                        </div>
+                        <div className="column" id="sidebar">
                         {this.sideBar()}
+                        </div>
                     </div>
                 </div>);
         }
         else {
             return (
                 <div>
-                    <p> Loading . . . </p>
+                <p> Loading . . . </p>
                 </div>);
+        }
+    }
+
+    /*
+     * Displays the game winner under the assumption there is one
+     */
+    renderGameWinner() {
+        if (this.state.gameWinner === null && !this.gameStart) {
+            return "Waitng for both players to submit their boards..."
+        }
+        if (this.state.gameWinner === null && this.gameStart) {
+            return "Game in progress!"
+        }
+        if (this.userName == this.state.gameWinner) {
+            return "You won!";
+        }
+        else {
+            return `${this.state.gameWinner} Won!`;
         }
     }
 
