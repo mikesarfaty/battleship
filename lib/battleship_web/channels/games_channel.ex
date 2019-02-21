@@ -68,7 +68,6 @@ defmodule BattleshipWeb.GamesChannel do
   
   # Add authorization logic here as required.
   defp authorized?(_payload) do
-    # ?TODO: maybe this is a better place to do user-checking?
     true
   end
 end

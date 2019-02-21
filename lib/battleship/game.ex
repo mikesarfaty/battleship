@@ -4,8 +4,6 @@ defmodule Battleship.Game do
   # CONSTRUCTION
   ################################################################################
 
-  # ?TODO: might need a board parser for receiving from clients?
-
   def new do
     # init everything empty
     %{
@@ -67,15 +65,21 @@ defmodule Battleship.Game do
     {currentCell, _} = List.pop_at(board, startIndex + offset)
     if String.equivalent?(currentCell, shipType) do
       # if the current directional seek generates a positive result
-      if String.to_integer(String.slice(shipType, 1..1)) == (offset + increment) do
-        # if we've finished counting all cells of a ship
-        true
+      if (increment == 1 and (div(startIndex, 10) != div((startIndex + offset), 10))) do
+        # make sure that a ship doesn't extend beyond a row into the next row, since
+        #   our client can theoretically submit boards that do this
+        false
       else
-        if increment == 10 and String.to_integer(String.slice(shipType, 1..1)) == div((offset + increment), 10) do
+        if String.to_integer(String.slice(shipType, 1..1)) == (offset + increment) do
+          # if we've finished counting all cells of a ship
           true
         else
-          # if we haven't discovered the end of the ship, continue recursion
-          validate_ship(board, shipType, startIndex, increment, offset + increment)
+          if increment == 10 and String.to_integer(String.slice(shipType, 1..1)) == div((offset + increment), 10) do
+            true
+          else
+            # if we haven't discovered the end of the ship, continue recursion
+            validate_ship(board, shipType, startIndex, increment, offset + increment)
+          end
         end
       end
     else
@@ -101,7 +105,13 @@ defmodule Battleship.Game do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
       Map.put(game, :player2_board, strip(game.player2_board))
     else
-      Map.put(game, :player1_board, strip(game.player1_board))
+      if String.equivalent?(game.player2_name, name) do
+        Map.put(game, :player1_board, strip(game.player1_board))
+      else
+        # generate spectator view
+        Map.put(Map.put(game, :player2_board, strip(game.player2_board)),
+                :player1_board, strip(game.player1_board))
+      end
     end
   end
   
