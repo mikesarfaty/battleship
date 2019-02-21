@@ -10,51 +10,72 @@ const rows = 10;
 const cols = 10;
 
 class Battleship extends React.Component {
+
+    /*
+     * Constructor Steps:
+     * 1. Initialize
+     * 2. Join the game channel, get whatever view and fill in gaps
+     * 3. Set our name in the channel, we can initialize our board now
+     *      that we know which player we were assigned to
+     */
     constructor (props) {
         super(props);
         this.channel = props.channel;
         this.userName = props.userName;
+        this.dragging = ""; // If we're placing ships, which one are we placing?
+        this.gameStart = false;
+        this.shipsAreHorizontal = {
+            "S3": false,
+            "S4": true,
+            "S5": true
+        }
         this.state = {
-            playerOneSkel: this.emptySkel(),
-            playerTwoSkel: this.emptySkel(),
+            playerOneSkel: [],
+            playerTwoSkel: [],
             playerOneName: "",
             playerTwoName: ""
-        }
+        };
 
-        this.channel
+        this.channel // join
             .join()
-            .receive("ok", this.gotView.bind(this))
-            .receive("error", resp => { console.log("Unable to join", resp); });
+            .receive("ok", this.gotJoinView.bind(this))
 
-        this.channel.push("set_name", {
+        this.channel.push("set_name", { // set name
             name: this.userName
         })
-            .receive("ok", this.gotView.bind(this));
+            .receive("ok", this.gotNameView.bind(this));
 
-        this.channel.push("board_init", {
-            board: this.initBoard(),
-            name: this.userName
-        })
-            .receive("ok", this.gotView.bind(this));
-
-
-        this.update()
+        // XXX: componentDidMount() ????
+        setTimeout(this.initBoardThenUpdate.bind(this), 100); // start ship placement
     }
 
-    update() {
-        this.channel.push("update", {
-            name: this.userName
-        })
-            .receive("ok", this.gotView.bind(this));
-
-        setTimeout(this.update.bind(this), 250);
-    }
 
     randIdx() {
         return Math.floor(Math.random() * Math.floor(rows * cols));
     }
 
-    emptySkel() {
+    placeShip(board, shipView) {
+        let length = 0;
+        let start = 0;
+        let view = shipView;
+        if (shipView == "S5") {
+            start = 0;
+            length = 5;
+        }
+        else if (shipView == "S4") {
+            start = (cols * 2);
+            length = 4;
+        }
+        else {
+            start = (cols * 4);
+            length = 3;
+        }
+        for (let i = start; i < start + length; i++) {
+            board[i].view = shipView;
+        }
+    }
+
+    emptySkel(forPlayerOne) {
         let board = [];
         for (let i = 0; i < rows * cols; i++) {
             board.push({
@@ -63,35 +84,28 @@ class Battleship extends React.Component {
                 view: "O"
             });
         }
+        if (forPlayerOne && this.isPlayerOne()) {
+            this.placeShip(board, "S5");
+            this.placeShip(board, "S4");
+            this.placeShip(board, "S3");
+        }
+        else if (!forPlayerOne && !this.isPlayerOne()) {
+            this.placeShip(board, "S5");
+            this.placeShip(board, "S4");
+            this.placeShip(board, "S3");
+        }
         return board;
     }
+    
+    /********************* VIEW RECEIVERS **********************/
 
-    initBoard() {
-        let initBoard = [];
-        for (let i = 0; i < rows * cols; i++) {
-            initBoard.push("O");
-        }
-        // for (let i = 0; i < 10; i++) {
-        //     initBoard[this.randIdx()] = "S";
-        // } // replaced w/ different temporary fixed init for server-side board validation tests
-        let s3Start = 12;
-        for (let i = 0; i < 3; i++) {
-            initBoard[s3Start + i] = "S3";
-        }
-        let s4Start = 0;
-        for (let i = 0; i < 4; i++) {
-            initBoard[s4Start + i] = "S4";
-        }
-        let s5Start = 50;
-        for (let i = 0; i < 5; i++) {
-            initBoard[s5Start + (10 * i)] = "S5";
-        }
-        console.log(initBoard);
-        return initBoard;
-    }
-        
+    /*
+     * Received a generic game view. Draw it, only changing the properties
+     * of state that need to be changed on view updates. For example, we want
+     * to still be hovering the same tile. If we don't receive boards from the
+     * server, keep the dummy boards.
+     */
     gotView(view) {
-        console.log(view.game);
         let game = view.game;
         let playerOneSkel = [];
         let playerTwoSkel = [];
@@ -99,12 +113,12 @@ class Battleship extends React.Component {
             playerOneSkel.push({
                 index: i,
                 view: game.player1_board[i],
-                hover: this.state.playerOneSkel[i].isHovered
+                isHovered: this.state.playerOneSkel[i].isHovered
             });
             playerTwoSkel.push({
                 index: i,
                 view: game.player2_board[i],
-                hover: this.state.playerTwoSkel[i].isHovered
+                isHovered: this.state.playerTwoSkel[i].isHovered
             });
         }
 
@@ -122,13 +136,96 @@ class Battleship extends React.Component {
         });
     }
 
-    onClick(clickedIndex, _ev) {
-        this.channel.push("fire", {
-            idx: clickedIndex,
-            name: this.userName
+    /*
+     * We have just joined the game, so we get an initial empty view
+     */
+    gotJoinView(view) {
+        let game = view.game;
+        let playerOneSkel = [];
+        let playerOneName = "";
+        let playerTwoSkel = [];
+        let playerTwoName = "";
+
+        if (game.player1_board.length == 0) {
+            for (let i = 0; i < rows * cols; i++) {
+                playerOneSkel.push({
+                    index: i,
+                    view: "O",
+                    ishovered: false
+                });
+            }
+            playerOneName = ""
+        }
+        else {
+            playerOneSkel = game.player1_board;
+            playerOneName = game.player1_name;
+        }
+
+        if (game.player2_board.length == 0) {
+            for (let i = 0; i < rows * cols; i++) {
+                playerTwoSkel.push({
+                    index: i,
+                    view: "O",
+                    ishovered: false
+                });
+            }
+            playerTwoName = ""
+        }
+        else {
+            console.log("join", game);
+            playerTwoSkel = game.player2_board;
+            playerTwoName = game.player2_name;
+        }
+
+        this.setState({
+            playerOneSkel: playerOneSkel,
+            playerTwoSkel: playerTwoSkel,
+            playerOneName: playerOneName,
+            playerTwoName: playerTwoName
         });
     }
 
+    /*
+     * We set our name and got he view back
+     */
+    gotNameView(view) {
+        let playerOneName = "";
+        let playerTwoName = "";
+        let game = view.game;
+        let newState = this.state;
+        newState.playerOneName = game.player1_name;
+        newState.playerTwoName = game.player2_name;
+        this.setState(newState)
+    }
+
+    /*
+     * We are ready to start moving pieces around
+     */
+    initBoardThenUpdate() {
+        let newState = this.state;
+        newState.playerOneSkel = this.emptySkel(true);
+        newState.playerTwoSkel = this.emptySkel(false);
+        this.setState(newState);
+        this.update(); // poll for updates from server
+    }
+
+    /*
+     * Poll the server for an updated game state periodically
+     */
+    update() {
+        this.channel.push("update", {
+            name: this.userName
+        })
+            .receive("ok", this.gotView.bind(this));
+
+        setTimeout(this.update.bind(this), 250);
+    }
+
+    /****************** COMPONENT HELPERS ********************/
+
+    /* 
+     * Getter for a board that doesn't belong to this user
+     */
     getOtherBoard() {
         if (this.userName == this.state.playerOneName) {
             return this.state.playerTwoSkel;
@@ -138,10 +235,59 @@ class Battleship extends React.Component {
         }
     }
 
-    isPlayerOne() {
-        return this.userName == this.playerOneName;
+    /*
+     * Getter for board that belongs to this user
+     */
+    getMyBoard() {
+        if (this.isPlayerOne()) {
+            return this.state.playerOneSkel;
+        }
+        else {
+            return this.state.playerTwoSkel;
+        }
     }
 
+    /*
+     * Am I player one?
+     */
+    isPlayerOne() {
+        return this.userName == this.state.playerOneName;
+    }
+
+    /*
+     * Based on a view, what's the length of the corresponding ship?
+     */
+    getShipLength(view) {
+        if (view == "S3") {
+            return 3
+        }
+        else if (view == "S4") {
+            return 4
+        }
+        else if (view == "S5") {
+            return 5
+        }
+    }
+
+    /* ******************* TILE ACTION EVENTS **********************/
+
+    /*
+     * If the game started and we clicked the opponent's board,
+     * tell the server that we're firing upon that target
+     */
+    onClick(clickedIndex, _ev) {
+        if (!this.gameStart) {
+            return;
+        }
+        this.channel.push("fire", {
+            idx: clickedIndex,
+            name: this.userName
+        });
+    }
+    
+    /*
+     * Allow "Hovering" of the other player's board.
+     */
     onMouseEvent(clickedIndex, isMouseEnter, _ev) {
         let newState = this.state;
         let newOtherBoard = this.getOtherBoard();
@@ -151,33 +297,221 @@ class Battleship extends React.Component {
         else {
             newOtherBoard[clickedIndex].isHovered = false;
         }
-        console.log("new state is", newState);
         this.setState(newState);
     }
 
-    renderSquare(i, isMyBoard, sq) {
-        let classNames = "column tile";
-        if (sq.isHovered) {
-            classNames += " hover"
+    /*
+     * Pick up a ship to move it during placement
+     */
+    onDragStart(draggedSquare, _ev) {
+        if (this.gameStart) {
+            return;
         }
-        if (isMyBoard) { // only put onClick events on other board
-            return(
-                <div className={classNames} key={i}>
-                    <p>{sq.view}</p>
+        if (["S3", "S4", "S5"].includes(draggedSquare.view)) {
+            this.dragging = draggedSquare.view;
+            let board = this.getMyBoard();
+            this.setState(this.state);
+        }
+    }
+
+    /*
+     * When the dragging ends just make it so we show via
+     * this component that we're no longer dragging anything
+     */
+    onDragEnd(_ev) {
+        this.dragging = "";
+    }
+
+    /*
+     * When we drag over a tile, if we're dragging something, show the drag
+     * Note: The dragging limitations (such as not being able to drag
+     * over invalid placements) are handled in the helper functions.
+     */
+    onDragOver(sq, _ev) {
+        if (this.gameStart) {
+            return;
+        }
+        if (this.dragging != "") {
+            if (this.shipsAreHorizontal[this.dragging]) {
+                this.onDragOverHorizontal(sq);
+            }
+            else {
+                this.onDragOverVertical(sq);
+            }
+        }
+    }
+
+    /*
+     * Handle ship dragging vertically for ship placement and
+     * ensure that we're able to move the ship being dragged
+     * to the desired location
+     */
+    onDragOverVertical(sq) {
+        let board = this.getMyBoard();
+        let shipLength = this.getShipLength(this.dragging);
+        if (!this.canMoveTo(sq.index, shipLength, false)) {
+            return;
+        }
+        this.removeAll(this.dragging, board);
+        for (let i = 0; i < shipLength; i++) {
+            if (board[sq.index + (cols * i)].view == "O") {
+                board[sq.index + (cols * i)].view = this.dragging;
+            }
+        }
+        this.setState(this.state);
+    }
+
+    /*
+     * Handle ship horizontally vertically for ship placement
+     * and ensure that we're able to move the ship being dragged
+     * to the desired location
+     */
+    onDragOverHorizontal(sq) {
+        let board = this.getMyBoard();
+        let shipLength = this.getShipLength(this.dragging);
+        if (!this.canMoveTo(sq.index, shipLength, true)) {
+            return;
+        }
+        this.removeAll(this.dragging, board);
+        for (let i = sq.index; i < sq.index + shipLength; i++) {
+            if (board[i].view == "O") {
+                board[i].view = this.dragging;
+            }
+        }
+        this.setState(this.state);
+    }
+
+    /*
+     * removes all squares with the given view from the given board
+     */
+    removeAll(view, board) {
+        for (let i = 0; i < rows * cols; i++) {
+            if (board[i].view == view) {
+                board[i].view = "O";
+            }
+        }
+    }
+
+    /*
+     * Rotate our ships when they're double clicked, assuming that
+     * they have enough space to be rotated in their current position.
+     */
+    onDoubleClick(sq, _ev) {
+        if (this.gameStart) {
+            return;
+        }
+        if (["S3", "S4", "S5"].includes(sq.view)) {
+            this.dragging = sq.view;
+            let canRotate = this.canMoveTo(
+                sq.index,
+                this.getShipLength(sq.view),
+                !this.shipsAreHorizontal[sq.view])
+            if (!canRotate) {
+                this.dragging = ""
+                return;
+            }
+            this.shipsAreHorizontal[sq.view] = !this.shipsAreHorizontal[sq.view];
+            this.dragging = sq.view;
+            this.onDragOver(sq, _ev);
+            this.dragging = "";
+        }
+    }
+
+    /*
+     * Given a start position, amount of space needed, and whether
+     * or not the needed free space should be horizontal, are we able
+     * to have that much free space?
+     */
+    canMoveTo(startPos, neededFreeSpace, isHorizontal) {
+        let increment = 1;
+        if (!isHorizontal) {
+            increment = cols
+        }
+        for (let i = 0; i < neededFreeSpace; i++) {
+            let indexInQuestion = startPos + (i * increment);
+            if (indexInQuestion > (rows * cols) - 1) {
+                return false;
+            }
+            if (!["O", this.dragging]
+                 .includes(this.getMyBoard()[indexInQuestion].view)){
+                return false;
+            }
+        }
+        if (isHorizontal &&
+            ((startPos + neededFreeSpace) % 10 == 0)) {
+            return true;
+        }
+        if (isHorizontal &&
+            ((startPos + neededFreeSpace) % 10 < neededFreeSpace)) {
+            return false;
+        }
+        return true;
+    }
+
+    /* ************* RENDERING FUNCTIONS ***************/
+    render() {
+        let playerOneName = this.state.playerOneName;
+        let playerTwoName = this.state.playerTwoName;
+        if (this.userName == playerOneName) {
+            playerOneName += " (you)"
+        }
+        else {
+            playerTwoName += " (you)"
+        }
+        if (this.state.playerOneSkel.length > 0) {
+            return (
+                <div id="page" className="row">
+                    <div className="column" id={this.getPlayerColor(0)}>
+                        <p>{playerOneName}</p>
+                        {this.renderBoard(
+                            this.userName == this.state.playerOneName, true)}
+                    </div>
+                    <div className="column" id={this.getPlayerColor(1)}>
+                        <p>{playerTwoName}</p>
+                        {this.renderBoard(
+                            this.userName == this.state.playerTwoName, false)}
+                    </div>
+                    <div className="column" id="sidebar">
+                        {this.sideBar()}
+                    </div>
                 </div>);
         }
         else {
-            return(
-                <div className={classNames}
-                     key={i}
-                     onClick={this.onClick.bind(this, sq.index)}
-                     onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
-                     onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
-                    <p>{sq.view}</p>
+            return (
+                <div>
+                    <p> Loading . . . </p>
                 </div>);
         }
     }
 
+    /*
+     * Render the entirety of the board
+     */
+    renderBoard(isMyBoard, isPlayerOneBoard) {
+        if (isMyBoard && this.state.playerOneSkel.length == 0) {
+            return (<p> Waiting for Player 1 </p>)
+        }
+        if (!isMyBoard && this.state.playerTwoSkel.length == 0) {
+            return (<p> Waiting for Player 2 </p>)
+        }
+        let board = [];
+        for (let i = 0; i < rows; i++) {
+            board.push(
+                <div className="row gameRow" key={i}>
+                  {this.renderRow(i, isMyBoard, isPlayerOneBoard)}
+                </div>);
+        }
+        return board;
+    }
+
+    /*
+     * Render one row at a time
+     * Args:
+     *      rowNum - The row to render
+     *      isMyBoard - Whether or not we're rendering the component
+     *                  owner's board
+     *      isPlayerOneBoard - If the board belongs to player one
+     */
     renderRow(rowNum, isMyBoard, isPlayerOneBoard) {
         let row = [];
         let actingBoard = [] // the board we are currently drawing
@@ -194,23 +528,44 @@ class Battleship extends React.Component {
         return row;
     }
 
-    renderBoard(isMyBoard, isPlayerOneBoard) {
-        if (isMyBoard && this.state.playerOneSkel.length == 0) {
-            return (<p> Waiting for Player 1 </p>)
+    /*
+     * Render an individual battleship tile. Add the tile view to the CSS
+     * class so that we can change how the tile looks according to the
+     * tile view. Add all the necessary drag/onClick/mouse event handlers.
+     * We can later disable these based on game state (gameStarted vs !gameStarted
+     */
+    renderSquare(i, isMyBoard, sq) {
+        let classNames = "column tile";
+        classNames += " " + sq.view;
+        if (sq.isHovered) {
+            classNames += " hover"
         }
-        if (!isMyBoard && this.state.playerTwoSkel.length == 0) {
-            return (<p> Waiting for Player 2 </p>)
-        }
-        let board = [];
-        for (let i = 0; i < rows; i++) {
-            board.push(
-                <div className="row" key={i}>
-                  {this.renderRow(i, isMyBoard, isPlayerOneBoard)}
+        if (isMyBoard) { // only put onClick events on other board
+            return(
+                <div className={classNames}
+                     key={i}
+                     onDragStart={this.onDragStart.bind(this, sq)}
+                     onDragOver={this.onDragOver.bind(this, sq)}
+                     onDoubleClick={this.onDoubleClick.bind(this, sq)}
+                     onDragEnd={this.onDragEnd.bind(this)}>
                 </div>);
         }
-        return board;
+        else {
+            return(
+                <div className={classNames}
+                     key={i}
+                     onClick={this.onClick.bind(this, sq.index)}
+                     onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
+                     onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
+                </div>);
+        }
     }
 
+    /*
+     * Gets the player's color for their board. Returns a CSS id
+     * that is used in app.css to identify the correct color
+     * for a player's board
+     */
     getPlayerColor(slot) {
         if (slot == 0) {
             if (this.userName == this.state.playerOneName) {
@@ -252,18 +607,45 @@ class Battleship extends React.Component {
                     </p>
                     <div className="column tile H">
                     </div>
-                    <div className="column" id={this.getPlayerColor(1)}>
-                        <p>{playerTwoName}</p>
-                        {this.renderBoard(
-                            this.userName == this.state.playerTwoName, false)}
+                </div>
+                <div id="keyShip" className="row">
+                    <p className="column">
+                        SHIP:
+                    </p>
+                    <div className="column tile S5">
                     </div>
+                </div>
+                <div id="keyMiss" className="row">
+                    <p className="column">
+                        MISS:
+                    </p>
+                    <div className="column tile M">
+                    </div>
+                </div>
+            </div>);
+        return (<div>
+                    {explanation}
+                    {key}
+                    {sendButton}
                 </div>);
+    }
+
+    /*
+     * Submits the board to the game. This will always be a legal
+     * board unless someone cheats so we can wait for an "ok" message
+     * and throw out error messages. If there's an error, you cheated.
+     * I don't care about cheaters.
+     */
+    submitBoard(_ev) {
+        let boardToSend = [];
+        for (let i = 0; i < rows * cols; i++) {
+            boardToSend.push(this.getMyBoard()[i].view);
         }
-        else {
-            return (
-                <div>
-                    <p> Hello </p>
-                </div>);
-        }
+        this.gameStart = true;
+        this.channel.push("board_init", {
+            board: boardToSend,
+            name: this.userName
+        })
+            .receive("ok", this.gotView.bind(this));
     }
 }
