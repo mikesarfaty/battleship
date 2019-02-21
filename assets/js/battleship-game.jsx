@@ -594,17 +594,17 @@ class Battleship extends React.Component {
      */
     sideBar() {
         let sendButton = (
-            <button className="row"
+            <button className="row" id="sendButton"
             onClick={this.submitBoard.bind(this)}>
                 Confirm Board
             </button>);
         let explanation = (
             <div id="explanation">
-                <p className="row">Welcome to Battleship. When the game</p>
-                <p className="row">is ready, you can click your opponents</p>
-                <p className="row">square to fire at their ships. First</p>
-                <p className="row">person to sink all their opponents</p>
-                <p className="row">ships wins the entire game. Good luck!</p>
+                <p className="row">Welcome to Battleship!</p>
+                <p className="row">When the game is ready, you can click your
+                    opponents square to fire at their ships. First person to
+                    sink all their opponent's ships wins the entire game.
+                    Good luck!</p>
             </div>);
         let key = (
             <div id="key">

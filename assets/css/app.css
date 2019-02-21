@@ -2,6 +2,23 @@
 
 @import "~milligram/dist/milligram";
 
+#sendButton {
+    position: absolute;
+    bottom: 0;
+    margin: 5px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    display: block;    
+    /* -webkit-transform: translateY(-100%);
+    -ms-transform: translateY(-100%);
+    transform: translateY(-100%); */
+    width: 30%;
+}
+
+#explanation {
+    margin: 10px;
+}
+
 #thisplayer {
     background-color: LightGray;
 }
