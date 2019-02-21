@@ -153,6 +153,12 @@ class Battleship extends React.Component {
         let playerTwoSkel = [];
         let playerTwoName = "";
 
+        if (game.player1_name != this.userName & game.player2_name != this.userName) {
+            this.isSpectator = true;
+        } else {
+            this.isSpectator = false;
+        }
+
         if (game.player1_board.length == 0) {
             for (let i = 0; i < rows * cols; i++) {
                 playerOneSkel.push({
@@ -462,7 +468,7 @@ class Battleship extends React.Component {
         if (this.userName == playerOneName) {
             playerOneName += " (you)"
         }
-        else {
+        else if (this.userName == playerTwoName) {
             playerTwoName += " (you)"
         }
         if (this.state.playerOneSkel.length > 0) {
@@ -547,7 +553,7 @@ class Battleship extends React.Component {
         if (sq.isHovered) {
             classNames += " hover"
         }
-        if (isMyBoard) { // only put onClick events on other board
+        if (isMyBoard & !this.isSpectator) { // only put onClick events on other board
             return(
                 <div className={classNames}
                      key={i}
@@ -557,13 +563,18 @@ class Battleship extends React.Component {
                      onDragEnd={this.onDragEnd.bind(this)}>
                 </div>);
         }
-        else {
+        else if (!isMyBoard & !this.isSpectator) { 
             return(
                 <div className={classNames}
                      key={i}
                      onClick={this.onClick.bind(this, sq.index)}
                      onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
                      onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
+                </div>);
+        } else {
+            return(
+                <div className={classNames}
+                     key={i}> 
                 </div>);
         }
     }
