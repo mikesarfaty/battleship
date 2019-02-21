@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/mikesarfaty/battleship.git"
   },
-  "author": "Mike Sarfarty, Chris Gast",
+  "author": "Mike Sarfaty, Chris Gast",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mikesarfaty/battleship/issues"
