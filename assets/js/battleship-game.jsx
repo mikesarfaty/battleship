@@ -33,7 +33,8 @@ class Battleship extends React.Component {
             playerOneSkel: [],
             playerTwoSkel: [],
             playerOneName: "",
-            playerTwoName: ""
+            playerTwoName: "",
+            boardSubmitted: false
         };
 
         this.channel // join
@@ -629,11 +630,18 @@ class Battleship extends React.Component {
                     </div>
                 </div>
             </div>);
-        return (<div>
-                    {explanation}
-                    {key}
-                    {sendButton}
-                </div>);
+        if (this.state.boardSubmitted) {
+            return (<div>
+                        {explanation}
+                        {key}
+                    </div>);
+        } else {
+            return (<div>
+                        {explanation}
+                        {key}
+                        {sendButton}
+                    </div>);
+        }
     }
 
     /*
@@ -643,15 +651,18 @@ class Battleship extends React.Component {
      * I don't care about cheaters.
      */
     submitBoard(_ev) {
-        let boardToSend = [];
-        for (let i = 0; i < rows * cols; i++) {
-            boardToSend.push(this.getMyBoard()[i].view);
+        if (!this.state.boardSubmitted) {
+            let boardToSend = [];
+            for (let i = 0; i < rows * cols; i++) {
+                boardToSend.push(this.getMyBoard()[i].view);
+            }
+            this.gameStart = true;
+            this.channel.push("board_init", {
+                board: boardToSend,
+                name: this.userName
+            })
+                .receive("ok", this.gotView.bind(this));
+            this.state.boardSubmitted = true;
         }
-        this.gameStart = true;
-        this.channel.push("board_init", {
-            board: boardToSend,
-            name: this.userName
-        })
-            .receive("ok", this.gotView.bind(this));
     }
 }
