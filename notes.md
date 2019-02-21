@@ -39,5 +39,4 @@ https://docs.google.com/document/d/15mwTUXZeLtApc923QxpxbT1_uEYVoObQ_SbU7QVxdjU/
 TODO: we should have a way of signalling when both players have submitted their board,
 since otherwise the player can't tell when their guesses will actually be registered
 TODO: maybe fix css backgrounds for spectator?
-TODO: maybe hide p2 board until they join?
 TODO: disable click/hovers for spectator? is necessary even? probs not

@@ -128,6 +128,12 @@ class Battleship extends React.Component {
         if (game.player2_board.length == 0) {
             playerTwoSkel = this.state.playerTwoSkel;
         }
+        if (game.player1_name == "") {
+            game.player1_name = "Waiting for player 1..."
+        }
+        if (game.player2_name == "") {
+            game.player2_name = "Waiting for player 2..."
+        }
         this.setState({
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
