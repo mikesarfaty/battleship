@@ -33,7 +33,8 @@ class Battleship extends React.Component {
             playerOneSkel: [],
             playerTwoSkel: [],
             playerOneName: "",
-            playerTwoName: ""
+            playerTwoName: "",
+            boardSubmitted: false
         };
 
         this.channel // join
@@ -129,6 +130,12 @@ class Battleship extends React.Component {
         if (game.player2_board.length == 0) {
             playerTwoSkel = this.state.playerTwoSkel;
         }
+        if (game.player1_name == "") {
+            game.player1_name = "Waiting for player 1..."
+        }
+        if (game.player2_name == "") {
+            game.player2_name = "Waiting for player 2..."
+        }
         this.setState({
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
@@ -147,6 +154,12 @@ class Battleship extends React.Component {
         let playerOneName = "";
         let playerTwoSkel = [];
         let playerTwoName = "";
+
+        if (game.player1_name != this.userName & game.player2_name != this.userName) {
+            this.isSpectator = true;
+        } else {
+            this.isSpectator = false;
+        }
 
         if (game.player1_board.length == 0) {
             for (let i = 0; i < rows * cols; i++) {
@@ -568,7 +581,7 @@ class Battleship extends React.Component {
         if (sq.isHovered) {
             classNames += " hover"
         }
-        if (isMyBoard) { // only put onClick events on other board
+        if (isMyBoard & !this.isSpectator) { // only put onClick events on other board
             return(
                 <div className={classNames}
                      key={i}
@@ -578,13 +591,18 @@ class Battleship extends React.Component {
                      onDragEnd={this.onDragEnd.bind(this)}>
                 </div>);
         }
-        else {
+        else if (!isMyBoard & !this.isSpectator) { 
             return(
                 <div className={classNames}
                      key={i}
                      onClick={this.onClick.bind(this, sq.index)}
                      onMouseEnter={this.onMouseEvent.bind(this, sq.index, true)}
                      onMouseLeave={this.onMouseEvent.bind(this, sq.index, false)}> 
+                </div>);
+        } else {
+            return(
+                <div className={classNames}
+                     key={i}> 
                 </div>);
         }
     }
@@ -615,17 +633,17 @@ class Battleship extends React.Component {
      */
     sideBar() {
         let sendButton = (
-            <button className="row"
+            <button className="row" id="sendButton"
             onClick={this.submitBoard.bind(this)}>
                 Confirm Board
             </button>);
         let explanation = (
             <div id="explanation">
-                <p className="row">Welcome to Battleship. When the game</p>
-                <p className="row">is ready, you can click your opponents</p>
-                <p className="row">square to fire at their ships. First</p>
-                <p className="row">person to sink all their opponents</p>
-                <p className="row">ships wins the entire game. Good luck!</p>
+                <p className="row">Welcome to Battleship!</p>
+                <p className="row">When the game is ready, you can click your
+                    opponents square to fire at their ships. First person to
+                    sink all their opponent's ships wins the entire game.
+                    Good luck!</p>
             </div>);
         let key = (
             <div id="key">
@@ -651,11 +669,18 @@ class Battleship extends React.Component {
                     </div>
                 </div>
             </div>);
-        return (<div>
-                    {explanation}
-                    {key}
-                    {sendButton}
-                </div>);
+        if (this.state.boardSubmitted) {
+            return (<div>
+                        {explanation}
+                        {key}
+                    </div>);
+        } else {
+            return (<div>
+                        {explanation}
+                        {key}
+                        {sendButton}
+                    </div>);
+        }
     }
 
     /*
@@ -665,15 +690,18 @@ class Battleship extends React.Component {
      * I don't care about cheaters.
      */
     submitBoard(_ev) {
-        let boardToSend = [];
-        for (let i = 0; i < rows * cols; i++) {
-            boardToSend.push(this.getMyBoard()[i].view);
+        if (!this.state.boardSubmitted) {
+            let boardToSend = [];
+            for (let i = 0; i < rows * cols; i++) {
+                boardToSend.push(this.getMyBoard()[i].view);
+            }
+            this.gameStart = true;
+            this.channel.push("board_init", {
+                board: boardToSend,
+                name: this.userName
+            })
+                .receive("ok", this.gotView.bind(this));
+            this.state.boardSubmitted = true;
         }
-        this.gameStart = true;
-        this.channel.push("board_init", {
-            board: boardToSend,
-            name: this.userName
-        })
-            .receive("ok", this.gotView.bind(this));
     }
 }
