@@ -1,6 +1,11 @@
 # Battleship
 
-**TODO: Add description**
+Battleship is a 2-player game emulating the classic board game. In this implementation,
+each player must place 3 ships (1 length=3, 1 length=4, 1 lenght=5). Once both
+players have submitted their arrangements, the server will being accepting guesses,
+alternating between player 1 and player 2. The game will continue until
+one player has sunk all of their opponent's ships, at which point they are declared
+the winner.
 
 ## Installation
 
