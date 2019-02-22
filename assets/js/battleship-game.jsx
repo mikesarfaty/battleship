@@ -40,11 +40,6 @@ class Battleship extends React.Component {
             .join()
             .receive("ok", this.gotJoinView.bind(this))
 
-        this.channel.push("set_name", { // set name
-            name: this.userName
-        })
-            .receive("ok", this.gotNameView.bind(this));
-
         // XXX: componentDidMount() ????
         setTimeout(this.initBoardThenUpdate.bind(this), 100); // start ship placement
     }
@@ -142,6 +137,11 @@ class Battleship extends React.Component {
      * We have just joined the game, so we get an initial empty view
      */
     gotJoinView(view) {
+        this.channel.push("set_name", { // set name
+            name: this.userName
+        })
+            .receive("ok", this.gotNameView.bind(this));
+
         let game = view.game;
         let playerOneSkel = [];
         let playerOneName = "";
