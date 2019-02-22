@@ -1,3 +1,17 @@
+"""
+Game state contains:
+
+player#_board: single-depth, 100-length list
+  Each cell can be either {S3, S4, S5, H, M}
+player#_ready: boolean, has the player submitted their ship layout
+player#_name: string, users chosen username
+playerOneActive: is it player 1's turn?
+gameWinner: nil, becomes the winner's username upon victory
+chat: 10-length list, containing 10 most recent chat messages
+  Each message contains the author, and the message contents
+
+"""
+
 defmodule Battleship.Game do
 
   ################################################################################
@@ -9,10 +23,13 @@ defmodule Battleship.Game do
     %{
       player1_board: [], # { (S)hip | (H)it | (M)iss | (O)bfuscated }
       player2_board: [],
+      player1_ready: false,
+      player2_ready: false,
       player1_name: "",
       player2_name: "",
       playerOneActive: nil,
-      gameWinner: nil
+      gameWinner: nil,
+      chat: [] # we limit the chat log (a stack essentially) @ 10 items
     }
   end
 
@@ -60,8 +77,14 @@ defmodule Battleship.Game do
   end
 
   def validate_ship(board, shipType, startIndex, increment, offset) do
-    # increment is what controls what direction we seek in
-    # seek using increment
+    # recursive search to validate a single ship type
+    # after finding an S# element in validate_board, iterate horizontally
+    #   thru the board until we find all elements of the ship, or encounter
+    #   an empty space or a different ship type.
+    #   if we find all elements, return true and resume checking other ship types
+    #   in parent function. if we don't, try again w/ the increment = 10,
+    #   which essentially searches vertically rather than horizontally.
+    #   if we still can't validate the current ship, then the board is invalid.
     {currentCell, _} = List.pop_at(board, startIndex + offset)
     if String.equivalent?(currentCell, shipType) do
       # if the current directional seek generates a positive result
@@ -71,10 +94,11 @@ defmodule Battleship.Game do
         false
       else
         if String.to_integer(String.slice(shipType, 1..1)) == (offset + increment) do
-          # if we've finished counting all cells of a ship
+          # if we've finished counting all cells of a ship (horizontal search case)
           true
         else
           if increment == 10 and String.to_integer(String.slice(shipType, 1..1)) == div((offset + increment), 10) do
+            # if we've finished counting all cells of a ship (vertical search case)
             true
           else
             # if we haven't discovered the end of the ship, continue recursion
@@ -101,6 +125,7 @@ defmodule Battleship.Game do
   def client_view(game, name) do
     # Return the game state, but obfuscate the player whose name is NOT
     #   the input (aka the opponent of the user calling this function)
+    # spectators get both views obfuscated
     if String.equivalent?(game.player1_name, name) do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
       Map.put(game, :player2_board, strip(game.player2_board))
@@ -136,7 +161,8 @@ defmodule Battleship.Game do
   
   def set_name(game, name) do
     # set names for identifying users. first player to join is player 1
-    # in the event of identical names, append an underscore to player 2
+    # using a name already registered ni the game table is a reconnect
+    # spectators won't have their name added to the game table
     if String.equivalent?(game.player1_name, "") do
       Map.put(game, :player1_name, name)
     else
@@ -155,10 +181,12 @@ defmodule Battleship.Game do
   
   def board_init(game, board, name) do
     # apply an input board to the game state for the matching player
+    # also set that player as ready
+    # once both players are init'ed, start the game by making playerOneActive = true
     if String.equivalent?(name, game.player1_name) do
-      Map.put(game, :player1_board, board)
+      Map.put(Map.put(game, :player1_board, board), :player1_ready, true)
     else
-      Map.put(game, :player2_board, board)
+      Map.put(Map.put(game, :player2_board, board), :player2_ready, true)
       |> Map.put(:playerOneActive, true)
     end
   end
@@ -168,6 +196,7 @@ defmodule Battleship.Game do
     # using a users name and guess coordinate, if it is their turn, apply a guess
     # correct guess replaces (S)hip w/ (H)it
     # bad guess repalces (O)bfuscated w/ (M)iss
+    # don't fire if someone already won
     if game.gameWinner != nil do
       game
     else
@@ -200,5 +229,15 @@ defmodule Battleship.Game do
           end
       end
     end
+  end
+
+  def get_chat(game) do
+    # getting chat makes no changes to server, just respond with the chat contents
+    game.chat
+  end
+
+  def put_chat(game, uName, message) do
+    # only keep 10 messages, should allow new users to hop into the convo!
+    Map.put(game, :chat, (Enum.slice(([%{"user": uName, "msg": message}] ++ game.chat), 0, 9)))
   end
 end
