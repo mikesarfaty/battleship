@@ -29,7 +29,9 @@ defmodule Battleship.Game do
       player2_name: "",
       playerOneActive: nil,
       gameWinner: nil,
-      chat: [] # we limit the chat log (a stack essentially) @ 10 items
+      chat: [], # we limit the chat log (a stack essentially) @ 10 items
+      player1_reload: 0, # hacky fix for force reload for boards not rendering...
+      player2_reload: 0  # not idea, but we discovered this bug last minute
     }
   end
 
@@ -128,10 +130,10 @@ defmodule Battleship.Game do
     # spectators get both views obfuscated
     if String.equivalent?(game.player1_name, name) do
       # get player 1's view, return their ENTIRE board & obfuscated player 2 board
-      Map.put(game, :player2_board, strip(game.player2_board))
+      Map.put(Map.put(game, :player2_board, strip(game.player2_board)), :player1_reload, game.player1_reload + 1)
     else
       if String.equivalent?(game.player2_name, name) do
-        Map.put(game, :player1_board, strip(game.player1_board))
+        Map.put(Map.put(game, :player1_board, strip(game.player1_board)), :player2_reload, game.player2_reload + 1)
       else
         # generate spectator view
         Map.put(Map.put(game, :player2_board, strip(game.player2_board)),

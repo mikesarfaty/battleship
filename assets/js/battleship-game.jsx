@@ -40,7 +40,7 @@ class Battleship extends React.Component {
         this.channel // join
             .join()
             .receive("ok", this.gotJoinView.bind(this))
-
+        
         // XXX: componentDidMount() ????
         setTimeout(this.initBoardThenUpdate.bind(this), 100); // start ship placement
     }
@@ -102,7 +102,6 @@ class Battleship extends React.Component {
      * server, keep the dummy boards.
      */
     gotView(view) {
-        console.log("server view", view.game);
         let game = view.game;
         let playerOneSkel = [];
         let playerTwoSkel = [];
@@ -140,6 +139,10 @@ class Battleship extends React.Component {
             player1_ready: game.player1_ready,
             player2_ready: game.player2_ready
         });
+        if (view.game.player1_reload < 2) {
+            console.log("reload");
+            location.reload();
+        }
     }
 
     gotChat(view) {

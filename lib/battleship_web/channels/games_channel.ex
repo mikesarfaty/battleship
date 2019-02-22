@@ -25,6 +25,7 @@ defmodule BattleshipWeb.GamesChannel do
     current_game = BackupAgent.get(name)
     update = Game.client_view(current_game, uName)
     socket = assign(socket, :game, update)
+    BackupAgent.put(name, update)
     {:reply, {:ok, %{ "game" => update}}, socket}
   end
 
