@@ -1,3 +1,5 @@
+# Just mrror all handlers from games_channel, for function def and handle_call
+
 defmodule Battleship.GameServer do
   use GenServer
 
@@ -36,6 +38,14 @@ defmodule Battleship.GameServer do
     GenServer.call(reg(name), {:fire, name, idx, uName})
   end
 
+  def get_chat(name) do
+    GenServer.call(reg(name), {:get_chat, name})
+  end
+
+  def put_chat(name, uName, message) do
+    GenServer.call(reg(name), {:put_chat, name, uName, message})
+  end
+
   def peek(name) do
     GenServer.call(reg(name), {:peek, name})
   end
@@ -58,6 +68,18 @@ defmodule Battleship.GameServer do
 
   def handle_call({:fire, name, idx, uName}, _from, game) do
     game = Battleship.GameServer.fire(game, idx, uName)
+    Battleship.BackupAgent.put(name, game)
+    {:reply, game, game}
+  end
+  
+  def handle_call({:get_chat, name, uName}, _from, game) do
+    game = Battleship.GameServer.get_chat(game)
+    Battleship.BackupAgent.put(name, game)
+    {:reply, game, game}
+  end
+  
+  def handle_call({:put_chat, name, uName, message}, _from, game) do
+    game = Battleship.GameServer.put_chat(game, uName, message)
     Battleship.BackupAgent.put(name, game)
     {:reply, game, game}
   end

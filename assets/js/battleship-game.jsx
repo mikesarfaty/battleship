@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
+import $ from 'jquery';
 
 export default function game_init(root, channel, uName) {
   ReactDOM.render(<Battleship channel={channel} userName={uName}/>, root);
@@ -34,9 +35,8 @@ class Battleship extends React.Component {
             playerTwoSkel: [],
             playerOneName: "",
             playerTwoName: "",
-            boardSubmitted: false
+            chatLog: ""
         };
-
         this.channel // join
             .join()
             .receive("ok", this.gotJoinView.bind(this))
@@ -139,8 +139,36 @@ class Battleship extends React.Component {
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
             playerOneName: game.player1_name,
-            playerTwoName: game.player2_name
+            playerTwoName: game.player2_name,
+            player1_ready: game.player1_ready,
+            player2_ready: game.player2_ready
         });
+    }
+
+    gotChat(view) {
+        this.state.chatLog = "";
+        for (let i = 0; i < view.chat.length; i++) {
+            this.state.chatLog  += (view.chat[i].user + ": " + view.chat[i].msg + "\n");
+        }
+    }
+
+    putChat(ev) {
+        let message = "";
+        if (ev.key === "Enter") {
+            // get chat box and submit
+            message = ev.target.value;
+            
+        } else if (ev.key == null) {
+            // ev.target.value contains chat content
+            message = $("#chatEntry")[0].value;
+        }
+        if (message != "") {
+            this.channel.push("put_chat", {
+                name: this.userName,
+                message: message
+            });
+            $("#chatEntry")[0].value = "";
+        }
     }
 
     /*
@@ -185,7 +213,6 @@ class Battleship extends React.Component {
             playerTwoName = ""
         }
         else {
-            console.log("join", game);
             playerTwoSkel = game.player2_board;
             playerTwoName = game.player2_name;
         }
@@ -194,7 +221,9 @@ class Battleship extends React.Component {
             playerOneSkel: playerOneSkel,
             playerTwoSkel: playerTwoSkel,
             playerOneName: playerOneName,
-            playerTwoName: playerTwoName
+            playerTwoName: playerTwoName,
+            player1_ready: view.game.player1_ready,
+            player2_ready: view.game.player2_ready
         });
     }
 
@@ -230,6 +259,9 @@ class Battleship extends React.Component {
             name: this.userName
         })
             .receive("ok", this.gotView.bind(this));
+        
+        this.channel.push("get_chat", {})
+            .receive("ok", this.gotChat.bind(this));
 
         setTimeout(this.update.bind(this), 250);
     }
@@ -473,19 +505,28 @@ class Battleship extends React.Component {
         }
         if (this.state.playerOneSkel.length > 0) {
             return (
-                <div id="page" className="row">
-                    <div className="column" id={this.getPlayerColor(0)}>
-                        <p>{playerOneName}</p>
-                        {this.renderBoard(
-                            this.userName == this.state.playerOneName, true)}
+                <div>
+                    <div id="page" className="row">
+                        <div className="column" id={this.getPlayerColor(0)}>
+                            <p>{playerOneName}</p>
+                            {this.renderBoard(
+                                this.userName == this.state.playerOneName, true)}
+                        </div>
+                        <div className="column" id={this.getPlayerColor(1)}>
+                            <p>{playerTwoName}</p>
+                            {this.renderBoard(
+                                this.userName == this.state.playerTwoName, false)}
+                        </div>
+                        <div className="column" id="sidebar">
+                            {this.sideBar()}
+                        </div>
                     </div>
-                    <div className="column" id={this.getPlayerColor(1)}>
-                        <p>{playerTwoName}</p>
-                        {this.renderBoard(
-                            this.userName == this.state.playerTwoName, false)}
-                    </div>
-                    <div className="column" id="sidebar">
-                        {this.sideBar()}
+                    <div id="chatContainer" className="column">
+                        <div className="row" onSubmit={() => this.putChat}>
+                            <input className="column" id="chatEntry" type="text" onKeyUp={this.putChat.bind(this)}></input>
+                            <button className="column" className="row" id="chatSubmit" onClick={this.putChat.bind(this)}>Send</button>
+                        </div>
+                        <textarea className="row" id="chatLog" type="text" rows="10" disabled readOnly value={this.state.chatLog}></textarea>
                     </div>
                 </div>);
         }
@@ -641,7 +682,8 @@ class Battleship extends React.Component {
                     </div>
                 </div>
             </div>);
-        if (this.state.boardSubmitted) {
+        if ((this.state.player1_ready && this.state.playerOneName == this.userName)
+            || (this.state.player2_ready && this.state.playerTwoName == this.userName)) {
             return (<div>
                         {explanation}
                         {key}
@@ -650,6 +692,7 @@ class Battleship extends React.Component {
             return (<div>
                         {explanation}
                         {key}
+                        <br></br>
                         {sendButton}
                     </div>);
         }
@@ -660,9 +703,11 @@ class Battleship extends React.Component {
      * board unless someone cheats so we can wait for an "ok" message
      * and throw out error messages. If there's an error, you cheated.
      * I don't care about cheaters.
+     * Disable submitting after first submit
      */
     submitBoard(_ev) {
-        if (!this.state.boardSubmitted) {
+        if ((!this.state.player1_ready && this.state.playerOneName == this.userName)
+            || (!this.state.player2_ready && this.state.playerTwoName == this.userName)) {
             let boardToSend = [];
             for (let i = 0; i < rows * cols; i++) {
                 boardToSend.push(this.getMyBoard()[i].view);
@@ -673,7 +718,6 @@ class Battleship extends React.Component {
                 name: this.userName
             })
                 .receive("ok", this.gotView.bind(this));
-            this.state.boardSubmitted = true;
         }
     }
 }

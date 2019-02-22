@@ -65,6 +65,22 @@ defmodule BattleshipWeb.GamesChannel do
     BackupAgent.put(name, game)
     {:reply, {:ok, %{ "game" => Game.client_view(game, uName)}}, socket}
   end
+
+  def handle_in("get_chat", %{}, socket) do
+    name = socket.assigns[:name]
+    game = BackupAgent.get(name)
+    socket = assign(socket, :game, game)
+    {:reply, {:ok, %{"chat" => Game.get_chat(game)}}, socket}
+  end
+
+  def handle_in("put_chat", %{"name" => uName, "message" => message}, socket) do
+    name = socket.assigns[:name]
+    game = BackupAgent.get(name)
+    game = Game.put_chat(game, uName, message)
+    socket = assign(socket, :game, game)
+    BackupAgent.put(name, game)
+    {:noreply, socket}
+  end
   
   # Add authorization logic here as required.
   defp authorized?(_payload) do

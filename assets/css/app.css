@@ -2,17 +2,17 @@
 
 @import "~milligram/dist/milligram";
 
+#sideBar {
+    position: relatve;
+}
+
 #sendButton {
-    position: absolute;
     bottom: 0;
     margin: 5px;
     margin-bottom: 0;
     padding-bottom: 0;
     display: block;    
-    /* -webkit-transform: translateY(-100%);
-    -ms-transform: translateY(-100%);
-    transform: translateY(-100%); */
-    width: 30%;
+    width: 100%;
 }
 
 #explanation {
@@ -26,6 +26,36 @@
 #opponent {
     background-color: LightBlue;
 }
+
+#chatLog {
+    pointer-events: none; 
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+    margin-right: 0px;
+    padding-right: 0px;
+    height: 10em;
+    resize: none;
+}
+
+#chatContainer {
+    padding: 0px;
+    margin: 0px;
+    padding-top: 20px;
+}
+
+#chatEntry {
+    width: 90%;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+#chatSubmit {
+    width: 10%;
+    display: block;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
 
 .tile {
     border: 1px solid black;
